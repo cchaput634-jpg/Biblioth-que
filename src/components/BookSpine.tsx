@@ -118,14 +118,6 @@ export function BookSpine({ book, onOpen, leaning = false, locked = false, admin
         {book.title}
       </span>
 
-      {/* Reflet haut (tranche supérieure du bloc-livre) */}
-      <span
-        className="absolute inset-x-0 -top-[3px] h-[3px] rounded-t"
-        style={{
-          background: "linear-gradient(90deg, rgba(0,0,0,0.3), rgba(255,255,255,0.75), rgba(0,0,0,0.3))",
-        }}
-      />
-
       {/* Cadenas si le livre est verrouillé */}
       {locked && (
         <span
