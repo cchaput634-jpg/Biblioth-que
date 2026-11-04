@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { motion } from "motion/react";
 import { Lock, Pencil } from "lucide-react";
 import type { Book } from "@/types";
@@ -35,11 +36,11 @@ export function BookSpine({ book, onOpen, leaning = false, locked = false, admin
   const restRotate = leaning ? -4 : 0;
   const hoverRotate = leaning ? -3 : -1;
 
-  // Zone utile pour le titre vertical : 92% de la hauteur du dos.
-  // En écriture verticale, chaque caractère de Cinzel occupe ≈ fontSize * 0.72
-  // sur l'axe inline (mesuré empiriquement). Safety = 0.78.
+  // Zone utile pour le titre vertical : 72% de la hauteur du dos (14% en
+  // haut et en bas réservés à la décoration). Chaque caractère de Cinzel
+  // occupe ≈ fontSize * 0.72 en vertical-rl (mesuré empiriquement), safety 0.78.
   const spineLabel = book.spineTitle ?? book.title;
-  const usableHeight = heightPx * 0.92;
+  const usableHeight = heightPx * 0.72;
   const perChar = 0.78;
   const baseFont = widthPx * 0.42;
   // Minimum 13px pour une vraie lisibilité ; max = largeur du dos
@@ -72,12 +73,15 @@ export function BookSpine({ book, onOpen, leaning = false, locked = false, admin
       whileTap={{ scale: 0.97, rotate: restRotate }}
       transition={{ type: "spring", stiffness: 160, damping: 20 }}
     >
+      {/* Décoration haut : deux filets + petit losange en l'air */}
+      <SpineOrnament accent={accent} position="top" />
+
       {/* Zone bornée + centrage horizontal/vertical dans les axes NORMAUX,
           qui clip tout ce qui dépasse. L'écriture verticale est gérée par
           le span enfant pour éviter les problèmes d'axes avec writing-mode. */}
       <span
         className="absolute inset-x-0 flex items-center justify-center overflow-hidden"
-        style={{ top: "4%", bottom: "4%" }}
+        style={{ top: "14%", bottom: "14%" }}
       >
         <span
           className="font-display uppercase"
@@ -98,6 +102,9 @@ export function BookSpine({ book, onOpen, leaning = false, locked = false, admin
           {spineLabel}
         </span>
       </span>
+
+      {/* Décoration bas : même ornement en miroir */}
+      <SpineOrnament accent={accent} position="bottom" />
 
       {/* Cadenas si le livre est verrouillé */}
       {locked && (
@@ -126,5 +133,56 @@ export function BookSpine({ book, onOpen, leaning = false, locked = false, admin
         </span>
       )}
     </motion.button>
+  );
+}
+
+/**
+ * Ornement haut ou bas d'un dos : deux filets horizontaux séparés par
+ * un petit losange central. Occupe environ 12 % de la hauteur du dos,
+ * dans la zone laissée libre au-dessus/en-dessous du titre.
+ */
+function SpineOrnament({
+  accent,
+  position,
+}: {
+  accent: string;
+  position: "top" | "bottom";
+}) {
+  const edge = position === "top" ? "top" : "bottom";
+  return (
+    <div
+      className="absolute left-[12%] right-[12%] flex flex-col items-center gap-[4px] pointer-events-none"
+      style={{ [edge]: "4%" } as CSSProperties}
+    >
+      {position === "top" ? (
+        <>
+          <span className="w-full h-[1.5px]" style={{ background: accent, opacity: 0.9 }} />
+          <span className="w-[70%] h-px" style={{ background: accent, opacity: 0.55 }} />
+          <span
+            className="block rotate-45 mt-[2px]"
+            style={{
+              width: "7px",
+              height: "7px",
+              border: `1px solid ${accent}`,
+              opacity: 0.75,
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <span
+            className="block rotate-45 mb-[2px]"
+            style={{
+              width: "7px",
+              height: "7px",
+              border: `1px solid ${accent}`,
+              opacity: 0.75,
+            }}
+          />
+          <span className="w-[70%] h-px" style={{ background: accent, opacity: 0.55 }} />
+          <span className="w-full h-[1.5px]" style={{ background: accent, opacity: 0.9 }} />
+        </>
+      )}
+    </div>
   );
 }
