@@ -8,8 +8,13 @@ import { Shelf } from "@/components/Shelf";
 import { BookReader } from "@/components/BookReader";
 import { PasswordDialog } from "@/components/PasswordDialog";
 import { BookPasswordEditor } from "@/components/BookPasswordEditor";
-import { getAllPasswords, verifyPassword } from "@/lib/passwords";
-import { disableAdmin, enableAdmin, isAdminEnabled } from "@/lib/admin";
+import {
+  fetchLockedBooks,
+  isAdminEnabled,
+  logoutAdmin,
+  verifyAdminPassword,
+  verifyBookPassword,
+} from "@/lib/api";
 
 type Modal =
   | { kind: "none" }
@@ -21,27 +26,24 @@ export function App() {
   const [openBook, setOpenBook] = useState<Book | null>(null);
   const [admin, setAdmin] = useState<boolean>(() => isAdminEnabled());
   const [modal, setModal] = useState<Modal>({ kind: "none" });
-  // Clé qui change à chaque modification pour re-render les cadenas
-  const [pwTick, setPwTick] = useState(0);
+  const [locked, setLocked] = useState<Set<string>>(new Set());
+
+  const refreshLocked = useCallback(async () => {
+    setLocked(await fetchLockedBooks());
+  }, []);
+
+  useEffect(() => {
+    void refreshLocked();
+  }, [refreshLocked]);
 
   const closeModal = useCallback(() => setModal({ kind: "none" }), []);
-
-  // Signale les changements de mots de passe inter-onglet
-  useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key?.startsWith("bibliotheque:")) setPwTick((n) => n + 1);
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
 
   function handleBookClick(book: Book) {
     if (admin) {
       setModal({ kind: "edit", book });
       return;
     }
-    const passwords = getAllPasswords();
-    if (passwords[book.id]) {
+    if (locked.has(book.id)) {
       setModal({ kind: "unlock", book });
     } else {
       setOpenBook(book);
@@ -50,16 +52,12 @@ export function App() {
 
   function handlePadlockClick() {
     if (admin) {
-      disableAdmin();
+      logoutAdmin();
       setAdmin(false);
     } else {
       setModal({ kind: "master" });
     }
   }
-
-  const passwords = getAllPasswords();
-  // Référence pwTick pour que React re-render quand les mots de passe changent
-  void pwTick;
 
   return (
     <main className="flex-1 flex flex-col items-center px-4 sm:px-8 pb-16">
@@ -112,7 +110,7 @@ export function App() {
                 book={book}
                 onOpen={() => handleBookClick(book)}
                 leaning={idx === BOOKS.length - 1}
-                locked={!!passwords[book.id]}
+                locked={locked.has(book.id)}
                 adminMode={admin}
               />
             ))}
@@ -138,8 +136,9 @@ export function App() {
             description="Entrez le mot de passe maître."
             submitLabel="Déverrouiller"
             onCancel={closeModal}
-            onSubmit={(pw) => {
-              if (enableAdmin(pw)) {
+            onSubmit={async (pw) => {
+              const ok = await verifyAdminPassword(pw);
+              if (ok) {
                 setAdmin(true);
                 closeModal();
                 return true;
@@ -156,8 +155,10 @@ export function App() {
             description="Ce livre est verrouillé."
             submitLabel="Ouvrir"
             onCancel={closeModal}
-            onSubmit={(pw) => {
-              if (modal.kind === "unlock" && verifyPassword(modal.book.id, pw)) {
+            onSubmit={async (pw) => {
+              if (modal.kind !== "unlock") return false;
+              const ok = await verifyBookPassword(modal.book.id, pw);
+              if (ok) {
                 const b = modal.book;
                 closeModal();
                 setOpenBook(b);
@@ -172,10 +173,8 @@ export function App() {
           <BookPasswordEditor
             key={`edit-${modal.book.id}`}
             book={modal.book}
-            onClose={() => {
-              setPwTick((n) => n + 1);
-              closeModal();
-            }}
+            onSaved={refreshLocked}
+            onClose={closeModal}
           />
         )}
       </AnimatePresence>

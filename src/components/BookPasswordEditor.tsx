@@ -2,10 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { X, Key, Trash2 } from "lucide-react";
 import type { Book } from "@/types";
-import { getAllPasswords, setPassword, removePassword } from "@/lib/passwords";
+import {
+  deleteBookPassword,
+  fetchAllPasswords,
+  setBookPassword,
+} from "@/lib/api";
 
 interface Props {
   book: Book;
+  /** Appelé après enregistrement/suppression, pour rafraîchir l'étagère */
+  onSaved: () => void;
   onClose: () => void;
 }
 
@@ -13,16 +19,32 @@ interface Props {
  * Modal d'édition du mot de passe d'un livre (mode admin).
  * Affiche le mot de passe actuel, permet de le changer ou de l'enlever.
  */
-export function BookPasswordEditor({ book, onClose }: Props) {
-  const current = getAllPasswords()[book.id] ?? "";
-  const [value, setValue] = useState(current);
+export function BookPasswordEditor({ book, onSaved, onClose }: Props) {
+  const [value, setValue] = useState("");
+  const [hasCurrent, setHasCurrent] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    inputRef.current?.focus();
-    inputRef.current?.select();
-  }, []);
+    let cancelled = false;
+    (async () => {
+      const all = await fetchAllPasswords();
+      if (cancelled) return;
+      const current = all[book.id] ?? "";
+      setValue(current);
+      setHasCurrent(current.length > 0);
+      setLoading(false);
+      setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }, 0);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [book.id]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -32,18 +54,24 @@ export function BookPasswordEditor({ book, onClose }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    setPassword(book.id, value);
+    if (busy) return;
+    setBusy(true);
+    await setBookPassword(book.id, value);
     setSaved(true);
-    setTimeout(onClose, 650);
+    onSaved();
+    setTimeout(onClose, 500);
   }
 
-  function handleRemove() {
-    removePassword(book.id);
+  async function handleRemove() {
+    if (busy) return;
+    setBusy(true);
+    await deleteBookPassword(book.id);
     setValue("");
     setSaved(true);
-    setTimeout(onClose, 650);
+    onSaved();
+    setTimeout(onClose, 500);
   }
 
   return (
@@ -91,7 +119,11 @@ export function BookPasswordEditor({ book, onClose }: Props) {
 
         <label className="block">
           <span className="font-body text-sm text-ink-soft">
-            Mot de passe {current ? "(actuel affiché, modifiable)" : "(laisser vide = aucun verrou)"}
+            {loading
+              ? "Chargement…"
+              : hasCurrent
+                ? "Mot de passe (actuel affiché, modifiable)"
+                : "Mot de passe (laisser vide = aucun verrou)"}
           </span>
           <input
             ref={inputRef}
@@ -100,7 +132,8 @@ export function BookPasswordEditor({ book, onClose }: Props) {
             onChange={(e) => setValue(e.target.value)}
             autoComplete="off"
             placeholder="Aucun mot de passe"
-            className="mt-1 w-full rounded-md border border-skylis-300/80 bg-skylis-50/60 px-3 py-2 text-ink outline-none focus:border-skylis-500 focus:bg-white focus:ring-2 focus:ring-skylis-300/50"
+            disabled={loading}
+            className="mt-1 w-full rounded-md border border-skylis-300/80 bg-skylis-50/60 px-3 py-2 text-ink outline-none focus:border-skylis-500 focus:bg-white focus:ring-2 focus:ring-skylis-300/50 disabled:opacity-60"
           />
         </label>
 
@@ -114,7 +147,7 @@ export function BookPasswordEditor({ book, onClose }: Props) {
           <button
             type="button"
             onClick={handleRemove}
-            disabled={!current}
+            disabled={!hasCurrent || busy || loading}
             title="Supprimer le mot de passe"
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-body text-rose-700 hover:bg-rose-50 disabled:opacity-40 disabled:hover:bg-transparent no-tap"
           >
@@ -130,7 +163,8 @@ export function BookPasswordEditor({ book, onClose }: Props) {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-md text-sm font-display tracking-wider bg-skylis-600 text-white hover:bg-skylis-700 no-tap shadow-[0_4px_12px_-4px_rgba(13,148,136,0.6)]"
+              disabled={busy || loading}
+              className="px-4 py-2 rounded-md text-sm font-display tracking-wider bg-skylis-600 text-white hover:bg-skylis-700 disabled:opacity-50 no-tap shadow-[0_4px_12px_-4px_rgba(13,148,136,0.6)]"
             >
               Enregistrer
             </button>

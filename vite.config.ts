@@ -17,5 +17,13 @@ export default defineConfig({
     host: "127.0.0.1",
     port: 5177,
     strictPort: true,
+    // Proxifie /api vers le Worker local (wrangler dev sur 8787).
+    // Démarrez le backend avec `npm run dev:api`.
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8787",
+        changeOrigin: true,
+      },
+    },
   },
 });
