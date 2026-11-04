@@ -41,8 +41,29 @@ async function handleApi(
   env: Env,
   url: URL,
 ): Promise<Response> {
-  await ensureSchema(env);
   const parts = url.pathname.split("/").filter(Boolean); // ["api", ...]
+
+  // POST /api/admin/verify — ne nécessite PAS la D1, répondable même
+  // avant que le binding soit configuré.
+  if (
+    parts[1] === "admin" &&
+    parts[2] === "verify" &&
+    !parts[3] &&
+    request.method === "POST"
+  ) {
+    const body = await readJsonBody(request);
+    const attempt = typeof body?.password === "string" ? body.password : "";
+    return json({ ok: attempt === ADMIN_PASSWORD });
+  }
+
+  // Toutes les autres routes ont besoin de la D1 — message clair si manquante.
+  if (!env.DB) {
+    return json(
+      { error: "Base D1 non liée. Dashboard Pages → Settings → Functions → D1 bindings → DB." },
+      503,
+    );
+  }
+  await ensureSchema(env);
 
   // GET /api/locked
   if (parts[1] === "locked" && !parts[2] && request.method === "GET") {
@@ -65,18 +86,6 @@ async function handleApi(
       .first<{ password: string }>();
     if (!row) return json({ ok: true });
     return json({ ok: row.password === attempt });
-  }
-
-  // POST /api/admin/verify
-  if (
-    parts[1] === "admin" &&
-    parts[2] === "verify" &&
-    !parts[3] &&
-    request.method === "POST"
-  ) {
-    const body = await readJsonBody(request);
-    const attempt = typeof body?.password === "string" ? body.password : "";
-    return json({ ok: attempt === ADMIN_PASSWORD });
   }
 
   // Routes admin : exigent X-Admin-Password
