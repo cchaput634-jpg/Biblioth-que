@@ -1,8 +1,10 @@
 import type { Book } from "@/types";
 
 /**
- * Chaque livre a sa propre couleur de couverture (reprise de la version
- * historique du projet oracle). La tranche utilise cette couleur.
+ * Palette de 5 teintes mi-saturées, toutes à la même luminosité (~45 % L
+ * en HSL) pour qu'elles se détachent du fond turquoise clair tout en
+ * restant distinctes les unes des autres : terracotta, violet, émeraude,
+ * saphir, turquoise profond.
  */
 export const BOOKS: Book[] = [
   {
@@ -11,9 +13,10 @@ export const BOOKS: Book[] = [
     author: "Alice Hecalys",
     source: "/bibliotheque/grimoire-rune.html",
     summary: "Traduction et lecture des runes anciennes",
-    spineColor: "#2a1a0a",
-    spineColorDeep: "#140a04",
-    accentColor: "#c9a25a",
+    // Terracotta / cuir brûlé
+    spineColor: "#a85a3a",
+    spineColorDeep: "#5c2d1c",
+    accentColor: "#f6e0b8",
     heightScale: 1.05,
     thicknessScale: 1.1,
   },
@@ -23,9 +26,10 @@ export const BOOKS: Book[] = [
     author: "Alice Hecalys",
     source: "/bibliotheque/oracle-ombrum.html",
     summary: "Grimoire d'interprétation du jeu Ombrum",
-    spineColor: "#1b1848",
-    spineColorDeep: "#0a0820",
-    accentColor: "#d4b26a",
+    // Violet royal
+    spineColor: "#7a4bb5",
+    spineColorDeep: "#3d2370",
+    accentColor: "#f0e2ff",
     heightScale: 1,
     thicknessScale: 1,
   },
@@ -36,9 +40,10 @@ export const BOOKS: Book[] = [
     author: "Alice Hecalys",
     source: "/bibliotheque/runes-divination.html",
     summary: "Interprétation des runes et tirages",
-    spineColor: "#132a19",
-    spineColorDeep: "#07140a",
-    accentColor: "#c9a25a",
+    // Vert émeraude
+    spineColor: "#3f9a63",
+    spineColorDeep: "#1e5234",
+    accentColor: "#e4f5e8",
     heightScale: 0.95,
     thicknessScale: 0.95,
   },
@@ -48,9 +53,10 @@ export const BOOKS: Book[] = [
     author: "Alice Hecalys",
     source: "/bibliotheque/cristallomancie.html",
     summary: "Lecture et interprétation de la boule de cristal",
-    spineColor: "#0e1a33",
-    spineColorDeep: "#060c1a",
-    accentColor: "#8aa6e0",
+    // Bleu saphir
+    spineColor: "#4a6ec4",
+    spineColorDeep: "#1f3375",
+    accentColor: "#e0eaff",
     heightScale: 1.1,
     thicknessScale: 1.05,
   },
@@ -60,9 +66,10 @@ export const BOOKS: Book[] = [
     spineTitle: "Rituels de Skylis",
     source: "/bibliotheque/livre-des-rituels.html",
     summary: "Rituels de la nation du vent",
-    spineColor: "#1f4673",
-    spineColorDeep: "#0d2340",
-    accentColor: "#e0ecff",
+    // Turquoise profond (Skylis)
+    spineColor: "#2e8ba3",
+    spineColorDeep: "#124a5c",
+    accentColor: "#e0f5fa",
     heightScale: 1.08,
     thicknessScale: 1.15,
   },
