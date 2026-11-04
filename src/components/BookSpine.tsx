@@ -21,23 +21,27 @@ export function BookSpine({ book, onOpen, leaning = false, locked = false, admin
   const h = book.heightScale ?? 1;
   const t = book.thicknessScale ?? 1;
 
-  const heightPx = Math.round(260 * h);
-  const widthPx = Math.round(46 * t);
+  // Dos un peu plus épais pour laisser de la place à un titre lisible.
+  const heightPx = Math.round(280 * h);
+  const widthPx = Math.round(56 * t);
 
   const spine = book.spineColor;
   const spineDeep = book.spineColorDeep ?? book.spineColor;
-  const accent = book.accentColor ?? "rgba(255,255,255,0.85)";
+  const accent = book.accentColor ?? "rgba(255,255,255,0.95)";
 
   const restRotate = leaning ? -4 : 0;
   const hoverRotate = leaning ? -3 : -1;
 
-  // Zone utile pour le titre vertical : 76% de la hauteur du dos (marge de sécurité).
-  // Chaque caractère occupe ≈ fontSize * (line-height 0.95 + letter-spacing 0.05em)
-  // + petite marge pour les ascendantes/descendantes = ~1.15.
-  const usableHeight = heightPx * 0.76;
-  const perChar = 1.15;
-  const baseFont = widthPx * 0.28;
-  const titleFont = Math.max(7, Math.min(baseFont, usableHeight / (book.title.length * perChar)));
+  // Zone utile pour le titre vertical : 90% de la hauteur du dos (plus de filets).
+  // En écriture verticale, le navigateur applique la line-height intrinsèque
+  // de la police (Cinzel ~1.3) sur l'axe inline (vertical). On est donc large
+  // avec perChar = 1.35 pour éviter tout débordement.
+  const spineLabel = book.spineTitle ?? book.title;
+  const usableHeight = heightPx * 0.9;
+  const perChar = 1.35;
+  const baseFont = widthPx * 0.32;
+  // Minimum 10px pour garder de la lisibilité, maximum = largeur du dos
+  const titleFont = Math.max(10, Math.min(baseFont, usableHeight / (spineLabel.length * perChar)));
 
   return (
     <motion.button
@@ -68,19 +72,23 @@ export function BookSpine({ book, onOpen, leaning = false, locked = false, admin
     >
       {/* Titre écrit verticalement — centré, taille adaptée pour tenir dans le dos */}
       <span
-        className="absolute inset-y-[12%] left-1/2 flex items-center justify-center font-display uppercase overflow-hidden"
+        className="absolute inset-y-[5%] left-1/2 flex items-center justify-center font-display uppercase overflow-hidden"
         style={{
           writingMode: "vertical-rl",
           transform: "translateX(-50%) rotate(180deg)",
           color: accent,
           fontSize: `${titleFont}px`,
-          letterSpacing: "0.05em",
-          lineHeight: 0.95,
-          textShadow: "0 1px 2px rgba(0,0,0,0.35)",
+          fontWeight: 600,
+          letterSpacing: "0.03em",
+          lineHeight: 1,
+          // Double ombre pour un contour discret qui garantit la lisibilité
+          // sur n'importe quelle couleur de dos
+          textShadow:
+            "0 0 2px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,0.75), 0 0 1px rgba(0,0,0,0.9)",
           whiteSpace: "nowrap",
         }}
       >
-        {book.title}
+        {spineLabel}
       </span>
 
       {/* Cadenas si le livre est verrouillé */}

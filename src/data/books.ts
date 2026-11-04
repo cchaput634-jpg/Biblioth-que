@@ -32,6 +32,7 @@ export const BOOKS: Book[] = [
   {
     id: "runes-divination",
     title: "Les Runes de Divination",
+    spineTitle: "Runes de Divination",
     author: "Alice Hecalys",
     source: "/bibliotheque/runes-divination.html",
     summary: "Interprétation des runes et tirages",
@@ -56,6 +57,7 @@ export const BOOKS: Book[] = [
   {
     id: "livre-des-rituels",
     title: "Livre des Rituels de Skylis",
+    spineTitle: "Rituels de Skylis",
     source: "/bibliotheque/livre-des-rituels.html",
     summary: "Rituels de la nation du vent",
     spineColor: "#1f4673",

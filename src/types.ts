@@ -1,6 +1,8 @@
 export interface Book {
   id: string;
   title: string;
+  /** Titre raccourci pour le dos (quand `title` est trop long pour être lisible vertical) */
+  spineTitle?: string;
   /** Nom d'auteur ; absent = "Auteur inconnu" */
   author?: string;
   /** Chemin public vers la source HTML du livre */
