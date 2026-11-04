@@ -66,26 +66,6 @@ export function BookSpine({ book, onOpen, leaning = false, locked = false, admin
       whileTap={{ scale: 0.97, rotate: restRotate }}
       transition={{ type: "spring", stiffness: 160, damping: 20 }}
     >
-      {/* Deux filets d'ornement en haut (au-dessus du titre) */}
-      <span
-        className="absolute left-[12%] right-[12%] top-[6%] h-px"
-        style={{ background: accent, opacity: 0.85 }}
-      />
-      <span
-        className="absolute left-[12%] right-[12%] top-[calc(6%+5px)] h-px"
-        style={{ background: accent, opacity: 0.45 }}
-      />
-
-      {/* Deux filets symétriques en bas (sous le titre) */}
-      <span
-        className="absolute left-[12%] right-[12%] bottom-[6%] h-px"
-        style={{ background: accent, opacity: 0.85 }}
-      />
-      <span
-        className="absolute left-[12%] right-[12%] bottom-[calc(6%+5px)] h-px"
-        style={{ background: accent, opacity: 0.45 }}
-      />
-
       {/* Titre écrit verticalement — centré, taille adaptée pour tenir dans le dos */}
       <span
         className="absolute inset-y-[12%] left-1/2 flex items-center justify-center font-display uppercase overflow-hidden"
