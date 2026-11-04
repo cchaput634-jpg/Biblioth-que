@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Traduction des Runes Anciennes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Pinyon+Script&family=La+Belle+Aurore&family=Noto+Sans+Runic&display=swap">
+<style>
+/* Layout : un livre posé sur un bureau sombre à la bougie ; double page sur grand écran, page seule sur téléphone. */
+:root{
+  --desk:#1a110b; --desk-glow:#4a2c15;
+  --leather:#3b1d14; --leather-dark:#24100a; --gold:#c9a25a; --gold-soft:#8f6d35;
+  --parch:#e8d3a6; --parch-dark:#c9a86f;
+  --ink:#2e1a0e; --ink-red:#6a1f12; --ink-soft:#6b4a2c;
+  --f-script:"Pinyon Script","Apple Chancery",cursive;
+  --f-head:"IM Fell English SC","IM Fell English",Garamond,serif;
+  --f-body:"IM Fell English",Garamond,"Times New Roman",serif;
+  --f-hand:"La Belle Aurore","Bradley Hand","Segoe Script",cursive;
+  --f-rune:"Noto Sans Runic","Segoe UI Historic","Segoe UI Symbol",sans-serif;
+  --pw:340px; --ph:486px;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{margin:0;background:var(--desk);color:var(--parch);font-family:var(--f-body);overflow:hidden;
+  background:radial-gradient(ellipse at 50% 40%, var(--desk-glow) 0%, var(--desk) 62%);}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;box-sizing:border-box;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px}
+.stage{position:relative;perspective:2600px;overflow:visible}
+.stage.single{overflow:hidden;border-radius:2px}
+.book{position:relative;width:calc(var(--pw)*2);height:var(--ph);transition:transform .9s cubic-bezier(.45,.05,.25,1);transform-style:preserve-3d}
+.leaf{position:absolute;top:0;left:50%;width:50%;height:100%;transform-origin:left center;transform-style:preserve-3d;
+  transition:transform .9s cubic-bezier(.45,.05,.25,1);cursor:pointer}
+.leaf.flipped{transform:rotateY(-180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.back{transform:rotateY(180deg)}
+
+/* Parchemin */
+.paper{background:
+   radial-gradient(ellipse at 25% 20%, rgba(255,244,210,.6), transparent 55%),
+   radial-gradient(ellipse at 80% 90%, rgba(120,72,25,.28), transparent 55%),
+   radial-gradient(ellipse at 10% 80%, rgba(140,85,30,.18), transparent 45%),
+   var(--parch);
+  color:var(--ink);box-shadow:inset 0 0 calc(var(--pw)*.09) rgba(95,52,15,.55)}
+.paper::before{content:"";position:absolute;inset:0;opacity:.32;mix-blend-mode:multiply;pointer-events:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/><feColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .15 0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.paper::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.45;mix-blend-mode:multiply;background-size:cover;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='500' height='700'><filter id='m'><feTurbulence type='fractalNoise' baseFrequency='.014' numOctaves='4' seed='3'/><feColorMatrix values='0 0 0 0 .5 0 0 0 0 .32 0 0 0 0 .12 0 0 0 1.4 -.6'/></filter><rect width='100%' height='100%' filter='url(%23m)'/></svg>")}
+.front.paper{background-color:var(--parch)}
+.front.paper .gutter{position:absolute;inset:0 auto 0 0;width:12%;background:linear-gradient(90deg,rgba(70,35,10,.35),transparent);pointer-events:none;z-index:3}
+.back.paper .gutter{position:absolute;inset:0 0 0 auto;width:12%;background:linear-gradient(270deg,rgba(70,35,10,.35),transparent);pointer-events:none;z-index:3}
+
+.pg{position:relative;z-index:2;height:100%;box-sizing:border-box;padding:calc(var(--pw)*.1) calc(var(--pw)*.1) calc(var(--pw)*.08);
+  display:flex;flex-direction:column;gap:calc(var(--pw)*.03);font-size:calc(var(--pw)*.043);line-height:1.38}
+.front .pg{padding-left:calc(var(--pw)*.13)}
+.back .pg{padding-right:calc(var(--pw)*.13)}
+h2{font-family:var(--f-head);font-weight:normal;color:var(--ink-red);font-size:1.5em;margin:0;text-align:center;text-wrap:balance;line-height:1.1}
+.rule{display:flex;align-items:center;gap:.5em;color:var(--ink-soft);font-family:var(--f-rune);font-size:.8em;justify-content:center}
+.rule::before,.rule::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--ink-soft),transparent)}
+p{margin:0;font-family:var(--f-hand);font-size:1em;line-height:1.5}
+.lettrine::first-letter{font-family:var(--f-hand);color:var(--ink-red);float:left;font-size:2.6em;line-height:1;margin:-.05em .18em 0 0}
+.rn{font-family:var(--f-rune);font-style:normal;color:var(--ink);font-size:1.05em}
+.sig{font-family:var(--f-hand);font-size:1.7em;color:var(--ink);text-align:right;margin-top:auto;line-height:1}
+.folio{position:absolute;bottom:calc(var(--pw)*.04);left:0;right:0;text-align:center;font-family:var(--f-head);font-size:calc(var(--pw)*.034);color:var(--ink-soft);z-index:2;letter-spacing:.08em}
+.note{font-size:.92em;color:var(--ink-soft);border-left:1px solid var(--ink-soft);padding-left:.6em}
+ul,ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:.35em;font-family:var(--f-hand);font-size:1em;line-height:1.45}
+ol li::marker{font-family:var(--f-script);font-style:normal;color:var(--ink-red);font-size:1.25em}
+ul li::marker{content:"᛫  ";font-family:var(--f-rune);color:var(--ink-red)}
+
+/* Table des runes */
+.runes{display:flex;flex-direction:column;gap:0;margin-top:.2em}
+.row{display:grid;grid-template-columns:2.6em 2.2em 1fr;align-items:center;gap:.4em;padding:.18em 0;border-bottom:1px dashed rgba(107,74,44,.35)}
+.row .r{font-family:var(--f-rune);font-size:1.7em;line-height:1;text-align:center;color:var(--ink);text-shadow:0 0 .5px var(--ink)}
+.row .l{font-family:var(--f-hand);font-size:1.6em;line-height:1;color:var(--ink-red);text-align:center}
+.row .n{font-family:var(--f-hand);color:var(--ink-soft);font-size:1.05em}
+
+.pair{display:grid;grid-template-columns:auto 1fr;gap:.2em .7em;align-items:center}
+.pair .gl{font-family:var(--f-rune);font-size:1.45em;white-space:nowrap;color:var(--ink)}
+.pair p{font-size:.92em;line-height:1.4}
+
+/* Couverture */
+.cover{background:
+  radial-gradient(ellipse at 30% 25%, rgba(255,200,140,.12), transparent 50%),
+  linear-gradient(135deg,var(--leather),var(--leather-dark));color:var(--gold);
+  box-shadow:inset 0 0 calc(var(--pw)*.12) rgba(0,0,0,.7)}
+.cover::before{content:"";position:absolute;inset:0;opacity:.35;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='l'><feTurbulence type='fractalNoise' baseFrequency='.6' numOctaves='4'/><feColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23l)'/></svg>")}
+.cv{position:absolute;inset:calc(var(--pw)*.06);border:2px solid var(--gold-soft);outline:1px solid var(--gold-soft);outline-offset:calc(var(--pw)*-.025);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--pw)*.045);text-align:center;padding:calc(var(--pw)*.08)}
+.cv .band{font-family:var(--f-rune);font-size:calc(var(--pw)*.045);letter-spacing:.35em;color:var(--gold-soft)}
+.cv h1{margin:0;font-family:var(--f-script);font-weight:normal;font-size:calc(var(--pw)*.15);line-height:.95;color:var(--gold);text-shadow:0 1px 0 #000,0 0 8px rgba(201,162,90,.35);text-wrap:balance}
+.cv .by{font-family:var(--f-head);font-size:calc(var(--pw)*.05);letter-spacing:.12em;color:var(--gold)}
+.cv svg{width:calc(var(--pw)*.32);height:auto}
+.spine-l{position:absolute;inset:0 auto 0 0;width:7%;background:linear-gradient(90deg,rgba(0,0,0,.55),transparent)}
+.spine-r{position:absolute;inset:0 0 0 auto;width:7%;background:linear-gradient(270deg,rgba(0,0,0,.55),transparent)}
+
+/* Gardes */
+.endpaper{background:
+  repeating-radial-gradient(circle at 30% 40%, #4a1a14 0 6px, #3a130e 6px 13px, #55241a 13px 17px),
+  #3a130e}
+.endpaper::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse,transparent 30%,rgba(0,0,0,.55))}
+.exlib{position:absolute;inset:18% 14%;z-index:2;background:var(--parch);color:var(--ink);box-shadow:0 2px 10px rgba(0,0,0,.5);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.5em;padding:1em;font-size:calc(var(--pw)*.042);border:1px solid var(--parch-dark)}
+.exlib .small{font-family:var(--f-head);letter-spacing:.15em;font-size:.8em;color:var(--ink-soft)}
+.exlib .name{font-family:var(--f-hand);font-size:2.2em;line-height:1;color:var(--ink-red)}
+.exlib svg{width:3.2em}
+
+/* Commandes */
+.bar{display:flex;align-items:center;gap:14px;font-family:var(--f-head);color:var(--gold);font-size:15px;letter-spacing:.06em}
+.bar button{font:inherit;background:transparent;color:var(--gold);border:1px solid var(--gold-soft);border-radius:999px;width:44px;height:44px;cursor:pointer;font-size:20px;line-height:1}
+.bar button:hover:not(:disabled){background:rgba(201,162,90,.12)}
+.bar button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.bar button:disabled{opacity:.3;cursor:default}
+.count{min-width:9em;text-align:center}
+.hint{font-family:var(--f-body);font-style:italic;color:var(--gold-soft);font-size:13px;text-align:center}
+@media (prefers-reduced-motion:reduce){.leaf,.book{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="stage" id="stage"><div class="book" id="book"></div></div>
+  <div class="bar">
+    <button id="prev" aria-label="Page précédente">‹</button>
+    <span class="count" id="count">Couverture</span>
+    <button id="next" aria-label="Page suivante">›</button>
+  </div>
+  <div class="hint">Clique sur une page, glisse du doigt ou utilise les flèches du clavier pour feuilleter.</div>
+</div>
+
+<template id="hecate">
+<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+  <circle cx="50" cy="50" r="44"/><circle cx="50" cy="50" r="38" stroke-width="1"/>
+  <text x="50" y="66" text-anchor="middle" fill="currentColor" stroke="none" font-size="46" font-family="Noto Sans Runic, sans-serif">ᚱ</text>
+</svg>
+</template>
+
+<script>
+const H = document.getElementById('hecate').innerHTML;
+const row = (r,l,n)=>`<div class="row"><span class="r">${r}</span><span class="l">${l}</span><span class="n">${n}</span></div>`;
+const page = (num, inner)=>`<div class="gutter"></div><div class="pg">${inner}</div>${num?`<div class="folio">${num}</div>`:''}`;
+
+const sides = [
+ /* 0 couverture */ {cls:'cover', html:`<div class="spine-l"></div><div class="cv">
+    <div class="band">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ</div>
+    <h1>Traduction des Runes Anciennes</h1>
+    ${H}
+    <div class="by">Alice Hecalys</div>
+    <div class="band">ᚷ ᚹ ᚺ ᚾ ᛁ ᛃ</div></div>`, label:'Couverture'},
+ /* 1 garde ex-libris */ {cls:'endpaper', html:`<div class="exlib">
+    <div class="small">Ce livre appartient à</div>
+    <div class="name">Alice Hecalys</div>
+    <div class="small">Skyborn de Skylis</div>
+    <span style="color:var(--ink-red)">${H}</span>
+    <p>Qui le trouve le rende.<br>Qui le lit le respecte.</p></div>`, label:'Ex-libris'},
+ /* 3 principe */ {cls:'paper', html:page('i',`
+    <h2>Le principe</h2><div class="rule">ᚱ</div>
+    <p class="lettrine">Les runes forment un alphabet ancien. Chaque rune correspond à une lettre de notre alphabet, toujours la même.</p>
+    <p>Pour traduire un texte runique, il suffit de remplacer chaque rune par sa lettre. Pour écrire en runes, on fait l'inverse : chaque lettre est remplacée par sa rune.</p>`), label:'Le principe'},
+ /* 4 table I */ {cls:'paper', html:page('ii',`
+    <h2>Les correspondances</h2><div class="rule">I</div>
+    <div class="runes">${row('ᚨ','A','Ansuz')}${row('ᛒ','B','Berkano')}${row('ᚲ','C','Kaunan')}${row('ᛞ','D','Dagaz')}${row('ᛖ','E','Ehwaz')}${row('ᚠ','F','Fehu')}${row('ᚷ','G','Gebo')}${row('ᚺ','H','Hagalaz')}${row('ᛁ','I','Isa')}</div>`), label:'Correspondances I'},
+ /* 5 table II */ {cls:'paper', html:page('iii',`
+    <h2>Les correspondances</h2><div class="rule">II</div>
+    <div class="runes">${row('ᛃ','J','Jera')}${row('ᚲ','K','Kaunan')}${row('ᛚ','L','Laguz')}${row('ᛗ','M','Mannaz')}${row('ᚾ','N','Naudiz')}${row('ᛟ','O','Othala')}${row('ᛈ','P','Perthro')}${row('ᚲ','Q','Kaunan')}${row('ᚱ','R','Raidō')}</div>`), label:'Correspondances II'},
+ /* 6 table III */ {cls:'paper', html:page('iv',`
+    <h2>Les correspondances</h2><div class="rule">III</div>
+    <div class="runes">${row('ᛋ','S','Sowilo')}${row('ᛏ','T','Tiwaz')}${row('ᚢ','U','Uruz')}${row('ᚹ','V','Wunjo')}${row('ᚹ','W','Wunjo')}${row('ᚲᛋ','X','Kaunan et Sowilo, liées')}${row('ᛃ','Y','Jera')}${row('ᛉ','Z','Algiz')}</div>
+    <p class="note">Trois runes ont plusieurs visages : <span class="rn">ᚲ</span> porte C, K et Q ; <span class="rn">ᚹ</span> porte V et W ; <span class="rn">ᛃ</span> porte J et Y. Le sens du mot te dira lequel elles montrent.</p>`), label:'Correspondances III'},
+ /* 7 règles */ {cls:'paper', html:page('v',`
+    <h2>Les règles</h2><div class="rule">ᛏ</div>
+    <ul>
+      <li>Les accents s'effacent sous la pierre : É, È, Ê deviennent <span class="rn">ᛖ</span> ; À devient <span class="rn">ᚨ</span> ; Ç devient <span class="rn">ᚲ</span>.</li>
+      <li>Une lettre doublée garde ses deux runes, côte à côte, comme deux sœurs.</li>
+      <li>Un vide entre les signes sépare deux mots.</li>
+      <li>Les runes ignorent les majuscules. Elles n'ont qu'une seule forme, et cela leur suffit.</li>
+    </ul>
+    <p class="note">Une fois la phrase révélée, rends-lui ses accents : elle les a seulement laissés au seuil.</p>`), label:'Les règles'},
+ /* 8 pièges */ {cls:'paper', html:page('vi',`
+    <h2>Les pièges</h2><div class="rule">ᛉ</div>
+    <p>Certaines runes se ressemblent comme des jumelles, surtout lorsqu'une main pressée les a tracées.</p>
+    <div class="pair"><span class="gl">ᛟ ᛞ</span><p>O et D. Othala pose deux pieds sous son losange ; Dagaz ressemble à un sablier couché.</p>
+    <span class="gl">ᛖ ᛗ</span><p>E et M. Mannaz croise les bras en son centre ; Ehwaz ne fait que se creuser.</p>
+    <span class="gl">ᛚ ᛏ</span><p>L et T. Laguz n'a qu'une branche qui retombe ; Tiwaz en a deux, comme une flèche dressée.</p>
+    <span class="gl">ᚾ ᚺ</span><p>N et H. Naudiz n'a qu'un trait en travers ; Hagalaz relie deux piliers.</p></div>
+    <p class="note">Dans le doute, essaie les deux lettres. La bonne est celle qui forme un vrai mot.</p>`), label:'Les pièges'},
+ /* 9 méthode */ {cls:'paper', html:page('vii',`
+    <h2>La méthode</h2><div class="rule">ᛗ</div>
+    <ol>
+      <li>Repère les vides : ils te montrent où finissent les mots.</li>
+      <li>Commence par les mots courts, DE, LE, LA, ET. Ils livrent vite leurs lettres, et ces lettres t'aideront ailleurs.</li>
+      <li>Remplace chaque rune par sa lettre, sans te presser.</li>
+      <li>Si une rune hésite, retourne aux pièges et essaie ses deux visages.</li>
+      <li>Relis la phrase entière à voix haute, et rends-lui ses accents.</li>
+    </ol>`), label:'La méthode'},
+ /* 10 dernier mot */ {cls:'paper', html:page('viii',`
+    <h2>Dernier mot</h2><div class="rule">ᛞ</div>
+    <p class="lettrine">J'ai rassemblé ici tout ce qu'il faut pour lire et écrire les runes.</p>
+    <p>Puisse ce livre servir à qui en aura besoin.</p>
+    <div style="margin-top:auto;display:flex;flex-direction:column;align-items:flex-end;gap:.2em">
+      <div class="sig" style="margin:0">Alice Hecalys</div>
+      <div style="font-family:var(--f-head);font-size:.8em;letter-spacing:.12em;color:var(--ink-soft)">Skyborn de Skylis</div>
+    </div>`), label:'Dernier mot'},
+ /* 11 garde */ {cls:'endpaper', html:'', label:'Garde'},
+ /* 13 dos */ {cls:'cover', html:`<div class="spine-r"></div><div class="cv"><div class="band">ᛋ ᛏ ᛒ ᛖ ᛗ ᛚ</div>${H}<div class="band">ᛜ ᛞ ᛟ</div></div>`, label:'Quatrième de couverture'}
+];
+
+const book = document.getElementById('book'), stage = document.getElementById('stage');
+const N = sides.length/2; const leaves=[];
+for(let i=0;i<N;i++){
+  const lf=document.createElement('div'); lf.className='leaf';
+  const f=sides[2*i], b=sides[2*i+1];
+  lf.innerHTML=`<div class="face front ${f.cls}">${f.html}</div><div class="face back ${b.cls}">${b.html}</div>`;
+  lf.addEventListener('click',()=>{ (lf.classList.contains('flipped')?prev:next)(); });
+  book.appendChild(lf); leaves.push(lf);
+}
+
+let single=false, s=0; // s = index de la face affichée en mode page seule
+let f=0; // nombre de feuillets tournés
+let timer=null;
+
+function layout(){
+  const vw=window.innerWidth, vh=window.innerHeight;
+  single = vw<760;
+  const availH = vh-130;
+  let pw = single ? Math.min(vw-32, availH*0.7) : Math.min((vw-48)/2, availH*0.7);
+  pw = Math.max(200, Math.floor(pw));
+  document.documentElement.style.setProperty('--pw', pw+'px');
+  document.documentElement.style.setProperty('--ph', Math.round(pw/0.7)+'px');
+  stage.classList.toggle('single', single);
+  stage.style.width = (single? pw : pw*2)+'px';
+  stage.style.height = Math.round(pw/0.7)+'px';
+  if(single){ f=Math.ceil(s/2); } else { s = f===0?0:Math.min(2*f, sides.length-1); }
+  render(false);
+}
+function render(animate=true){
+  const pw=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pw'));
+  leaves.forEach((lf,i)=>{
+    const flipped=i<f;
+    if(flipped!==lf.classList.contains('flipped')){
+      lf.style.zIndex = 100;
+      clearTimeout(lf._t); lf._t=setTimeout(()=>{lf.style.zIndex = lf.classList.contains('flipped')? i+1 : N-i;}, animate?900:0);
+    } else lf.style.zIndex = flipped? i+1 : N-i;
+    lf.classList.toggle('flipped',flipped);
+  });
+  let x=0;
+  if(single){ x = (s%2===0) ? -pw : 0; }
+  else { if(f===0) x=-pw/2; else if(f===N) x=pw/2; }
+  book.style.transform=`translateX(${x}px)`;
+  const label = single ? sides[s].label : (f===0? 'Couverture' : f===N ? 'Quatrième de couverture' : `${sides[2*f-1].label}  ·  ${sides[2*f].label}`);
+  document.getElementById('count').textContent=label;
+  document.getElementById('prev').disabled = single ? s===0 : f===0;
+  document.getElementById('next').disabled = single ? s===sides.length-1 : f===N;
+}
+function next(){ if(single){ if(s<sides.length-1){s++; f=Math.ceil(s/2);} } else if(f<N) f++; render(); }
+function prev(){ if(single){ if(s>0){s--; f=Math.ceil(s/2);} } else if(f>0) f--; render(); }
+document.getElementById('next').onclick=next;
+document.getElementById('prev').onclick=prev;
+document.addEventListener('keydown',e=>{ if(e.key==='ArrowRight')next(); if(e.key==='ArrowLeft')prev(); });
+let tx=null;
+stage.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+stage.addEventListener('touchend',e=>{ if(tx===null)return; const d=e.changedTouches[0].clientX-tx; if(Math.abs(d)>40){ d<0?next():prev(); e.preventDefault(); } tx=null; });
+window.addEventListener('resize',layout);
+layout();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Livre des Rituels de Skylis</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Pinyon+Script&family=La+Belle+Aurore&family=Noto+Sans+Runic&display=swap">
+<style>
+/* Layout : un livre posé sur un bureau sombre à la bougie ; double page sur grand écran, page seule sur téléphone. */
+:root{
+  --desk:#1a110b; --desk-glow:#4a2c15;
+  --leather:#3b1d14; --leather-dark:#24100a; --gold:#c9a25a; --gold-soft:#8f6d35;
+  --parch:#e8d3a6; --parch-dark:#c9a86f;
+  --ink:#2e1a0e; --ink-red:#6a1f12; --ink-soft:#6b4a2c;
+  --f-script:"Pinyon Script","Apple Chancery",cursive;
+  --f-head:"IM Fell English SC","IM Fell English",Garamond,serif;
+  --f-body:"IM Fell English",Garamond,"Times New Roman",serif;
+  --f-hand:"La Belle Aurore","Bradley Hand","Segoe Script",cursive;
+  --f-rune:"Noto Sans Runic","Segoe UI Historic","Segoe UI Symbol",sans-serif;
+  --pw:340px; --ph:486px;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{margin:0;background:var(--desk);color:var(--parch);font-family:var(--f-body);overflow:hidden;
+  background:radial-gradient(ellipse at 50% 40%, var(--desk-glow) 0%, var(--desk) 62%);}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;box-sizing:border-box;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px}
+.stage{position:relative;perspective:2600px;overflow:visible}
+.stage.single{overflow:hidden;border-radius:2px}
+.book{position:relative;width:calc(var(--pw)*2);height:var(--ph);transition:transform .9s cubic-bezier(.45,.05,.25,1);transform-style:preserve-3d}
+.leaf{position:absolute;top:0;left:50%;width:50%;height:100%;transform-origin:left center;transform-style:preserve-3d;
+  transition:transform .9s cubic-bezier(.45,.05,.25,1);cursor:pointer}
+.leaf.flipped{transform:rotateY(-180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.back{transform:rotateY(180deg)}
+
+/* Parchemin */
+.paper{background:
+   radial-gradient(ellipse at 25% 20%, rgba(255,244,210,.6), transparent 55%),
+   radial-gradient(ellipse at 80% 90%, rgba(120,72,25,.28), transparent 55%),
+   radial-gradient(ellipse at 10% 80%, rgba(140,85,30,.18), transparent 45%),
+   var(--parch);
+  color:var(--ink);box-shadow:inset 0 0 calc(var(--pw)*.09) rgba(95,52,15,.55)}
+.paper::before{content:"";position:absolute;inset:0;opacity:.32;mix-blend-mode:multiply;pointer-events:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/><feColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .15 0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.paper::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.45;mix-blend-mode:multiply;background-size:cover;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='500' height='700'><filter id='m'><feTurbulence type='fractalNoise' baseFrequency='.014' numOctaves='4' seed='3'/><feColorMatrix values='0 0 0 0 .5 0 0 0 0 .32 0 0 0 0 .12 0 0 0 1.4 -.6'/></filter><rect width='100%' height='100%' filter='url(%23m)'/></svg>")}
+.front.paper{background-color:var(--parch)}
+.front.paper .gutter{position:absolute;inset:0 auto 0 0;width:12%;background:linear-gradient(90deg,rgba(70,35,10,.35),transparent);pointer-events:none;z-index:3}
+.back.paper .gutter{position:absolute;inset:0 0 0 auto;width:12%;background:linear-gradient(270deg,rgba(70,35,10,.35),transparent);pointer-events:none;z-index:3}
+
+.pg{position:relative;z-index:2;height:100%;box-sizing:border-box;padding:calc(var(--pw)*.1) calc(var(--pw)*.1) calc(var(--pw)*.08);
+  display:flex;flex-direction:column;gap:calc(var(--pw)*.03);font-size:calc(var(--pw)*.043);line-height:1.38}
+.front .pg{padding-left:calc(var(--pw)*.13)}
+.back .pg{padding-right:calc(var(--pw)*.13)}
+h2{font-family:var(--f-head);font-weight:normal;color:var(--ink-red);font-size:1.5em;margin:0;text-align:center;text-wrap:balance;line-height:1.1}
+.rule{display:flex;align-items:center;gap:.5em;color:var(--ink-soft);font-family:var(--f-rune);font-size:.8em;justify-content:center}
+.rule::before,.rule::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--ink-soft),transparent)}
+p{margin:0;font-family:var(--f-hand);font-size:1em;line-height:1.5}
+.lettrine::first-letter{font-family:var(--f-hand);color:var(--ink-red);float:left;font-size:2.6em;line-height:1;margin:-.05em .18em 0 0}
+.rn{font-family:var(--f-rune);font-style:normal;color:var(--ink);font-size:1.05em}
+.sig{font-family:var(--f-hand);font-size:1.7em;color:var(--ink);text-align:right;margin-top:auto;line-height:1}
+.folio{position:absolute;bottom:calc(var(--pw)*.04);left:0;right:0;text-align:center;font-family:var(--f-head);font-size:calc(var(--pw)*.034);color:var(--ink-soft);z-index:2;letter-spacing:.08em}
+.note{font-size:.92em;color:var(--ink-soft);border-left:1px solid var(--ink-soft);padding-left:.6em}
+ul,ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:.35em;font-family:var(--f-hand);font-size:1em;line-height:1.45}
+ol li::marker{font-family:var(--f-script);font-style:normal;color:var(--ink-red);font-size:1.25em}
+ul li::marker{content:"᛫  ";font-family:var(--f-rune);color:var(--ink-red)}
+
+/* Table des runes */
+.runes{display:flex;flex-direction:column;gap:0;margin-top:.2em}
+.row{display:grid;grid-template-columns:2.6em 2.2em 1fr;align-items:center;gap:.4em;padding:.18em 0;border-bottom:1px dashed rgba(107,74,44,.35)}
+.row .r{font-family:var(--f-rune);font-size:1.7em;line-height:1;text-align:center;color:var(--ink);text-shadow:0 0 .5px var(--ink)}
+.row .l{font-family:var(--f-hand);font-size:1.6em;line-height:1;color:var(--ink-red);text-align:center}
+.row .n{font-family:var(--f-hand);color:var(--ink-soft);font-size:1.05em}
+
+.pair{display:grid;grid-template-columns:auto 1fr;gap:.2em .7em;align-items:center}
+.pair .gl{font-family:var(--f-rune);font-size:1.45em;white-space:nowrap;color:var(--ink)}
+.pair p{font-size:.92em;line-height:1.4}
+
+/* Couverture */
+.cover{background:
+  radial-gradient(ellipse at 30% 25%, rgba(255,200,140,.12), transparent 50%),
+  linear-gradient(135deg,var(--leather),var(--leather-dark));color:var(--gold);
+  box-shadow:inset 0 0 calc(var(--pw)*.12) rgba(0,0,0,.7)}
+.cover::before{content:"";position:absolute;inset:0;opacity:.35;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='l'><feTurbulence type='fractalNoise' baseFrequency='.6' numOctaves='4'/><feColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23l)'/></svg>")}
+.cv{position:absolute;inset:calc(var(--pw)*.06);border:2px solid var(--gold-soft);outline:1px solid var(--gold-soft);outline-offset:calc(var(--pw)*-.025);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--pw)*.045);text-align:center;padding:calc(var(--pw)*.08)}
+.cv .band{font-family:var(--f-rune);font-size:calc(var(--pw)*.045);letter-spacing:.35em;color:var(--gold-soft)}
+.cv h1{margin:0;font-family:var(--f-script);font-weight:normal;font-size:calc(var(--pw)*.15);line-height:.95;color:var(--gold);text-shadow:0 1px 0 #000,0 0 8px rgba(201,162,90,.35);text-wrap:balance}
+.cv .by{font-family:var(--f-head);font-size:calc(var(--pw)*.05);letter-spacing:.12em;color:var(--gold)}
+.cv svg{width:calc(var(--pw)*.32);height:auto}
+.spine-l{position:absolute;inset:0 auto 0 0;width:7%;background:linear-gradient(90deg,rgba(0,0,0,.55),transparent)}
+.spine-r{position:absolute;inset:0 0 0 auto;width:7%;background:linear-gradient(270deg,rgba(0,0,0,.55),transparent)}
+
+/* Gardes */
+.endpaper{background:
+  repeating-radial-gradient(circle at 30% 40%, #4a1a14 0 6px, #3a130e 6px 13px, #55241a 13px 17px),
+  #3a130e}
+.endpaper::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse,transparent 30%,rgba(0,0,0,.55))}
+.exlib{position:absolute;inset:18% 14%;z-index:2;background:var(--parch);color:var(--ink);box-shadow:0 2px 10px rgba(0,0,0,.5);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.5em;padding:1em;font-size:calc(var(--pw)*.042);border:1px solid var(--parch-dark)}
+.exlib .small{font-family:var(--f-head);letter-spacing:.15em;font-size:.8em;color:var(--ink-soft)}
+.exlib .name{font-family:var(--f-hand);font-size:2.2em;line-height:1;color:var(--ink-red)}
+.exlib svg{width:3.2em}
+
+/* Commandes */
+.bar{display:flex;align-items:center;gap:14px;font-family:var(--f-head);color:var(--gold);font-size:15px;letter-spacing:.06em}
+.bar button{font:inherit;background:transparent;color:var(--gold);border:1px solid var(--gold-soft);border-radius:999px;width:44px;height:44px;cursor:pointer;font-size:20px;line-height:1}
+.bar button:hover:not(:disabled){background:rgba(201,162,90,.12)}
+.bar button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.bar button:disabled{opacity:.3;cursor:default}
+.count{min-width:9em;text-align:center}
+.hint{font-family:var(--f-body);font-style:italic;color:var(--gold-soft);font-size:13px;text-align:center}
+
+/* Pages de cartes, d'après le modèle de Cha */
+:root{--ink-violet:#5b2462}
+.entry{display:grid;grid-template-columns:37% 1fr;gap:calc(var(--pw)*.05);align-items:center;flex:1;min-height:0}
+.entry.droite{grid-template-columns:1fr 37%}
+.entry.droite img{order:2}
+.entry img{width:100%;height:auto;display:block;filter:drop-shadow(0 3px 5px rgba(60,30,10,.45))}
+.entry .txt{min-width:0;display:flex;flex-direction:column;gap:.4em;text-align:center}
+.entry h3{margin:0;font-family:var(--f-hand);font-weight:normal;color:var(--ink-violet);font-size:1.45em;line-height:1.15;text-wrap:balance}
+.entry p{font-size:1.02em;line-height:1.5}
+.entry h3 .num{font-family:var(--f-head);font-size:.8em;letter-spacing:.04em}
+.flourish{color:var(--ink-soft);display:flex;justify-content:center}
+.flourish svg{width:80%;height:auto}
+.cv .band{letter-spacing:.5em}
+
+/* Couverture aux couleurs des cartes : nuit cosmique violette, magenta et or */
+.cover{background:
+  radial-gradient(ellipse at 22% 18%, rgba(214,92,170,.45), transparent 45%),
+  radial-gradient(ellipse at 85% 80%, rgba(80,120,220,.4), transparent 50%),
+  radial-gradient(ellipse at 60% 45%, rgba(150,70,200,.35), transparent 55%),
+  linear-gradient(160deg,#2a1450,#140a2e 60%,#0d0820);
+  color:#e7c983;box-shadow:inset 0 0 calc(var(--pw)*.12) rgba(5,0,20,.8)}
+.cover::before{opacity:.9;mix-blend-mode:screen;background-size:240px 240px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><g fill='white'><circle cx='20' cy='30' r='.9' opacity='.8'/><circle cx='70' cy='12' r='.6' opacity='.6'/><circle cx='130' cy='50' r='1.1' opacity='.9'/><circle cx='200' cy='22' r='.7' opacity='.7'/><circle cx='45' cy='110' r='.6' opacity='.5'/><circle cx='160' cy='120' r='.9' opacity='.8'/><circle cx='220' cy='150' r='.6' opacity='.6'/><circle cx='95' cy='170' r='1' opacity='.8'/><circle cx='30' cy='200' r='.7' opacity='.6'/><circle cx='180' cy='210' r='.6' opacity='.7'/><circle cx='115' cy='90' r='.5' opacity='.5'/><circle cx='235' cy='80' r='.8' opacity='.7'/></g></svg>")}
+.cover .cv{border-color:#c9a25a;outline-color:#8f6d35}
+.cover .cv h1{color:#f0d592;text-shadow:0 0 12px rgba(240,200,120,.45),0 1px 0 #000}
+.cover .cv .band,.cover .cv .by{color:#e7c983}
+.spine-l{background:linear-gradient(90deg,rgba(5,0,20,.7),transparent)}
+.spine-r{background:linear-gradient(270deg,rgba(5,0,20,.7),transparent)}
+.endpaper{background:
+  radial-gradient(ellipse at 30% 30%, rgba(214,92,170,.35), transparent 50%),
+  radial-gradient(ellipse at 75% 75%, rgba(80,120,220,.35), transparent 55%),
+  #1c0f3a}
+.endpaper::after{background:radial-gradient(ellipse,transparent 35%,rgba(5,0,20,.6))}
+.exlib{border-color:#c9a25a}
+:root{--desk:#120b1f;--desk-glow:#3a2150;--gold:#e7c983;--gold-soft:#a3854e}
+
+/* Tirages */
+h4{margin:0;font-family:var(--f-hand);font-weight:normal;color:var(--ink-violet);font-size:1.4em;text-align:center}
+.spread{display:grid;justify-content:center;gap:calc(var(--pw)*.03);margin:.3em 0}
+.spread.one{grid-template-columns:28%}
+.spread.three{grid-template-columns:repeat(3,25%)}
+.spread.cross{grid-template-columns:repeat(3,25%);grid-template-areas:". t ." "l m r" ". b .";gap:calc(var(--pw)*.012) calc(var(--pw)*.03);flex:1;align-content:center}
+.c-top{grid-area:t}.c-left{grid-area:l}.c-mid{grid-area:m}.c-right{grid-area:r}.c-bot{grid-area:b}
+.slot{margin:0;display:flex;flex-direction:column;align-items:center;gap:.2em}
+.bk{position:relative;width:100%}
+.bk img{width:100%;height:auto;display:block;filter:drop-shadow(0 2px 4px rgba(60,30,10,.45))}
+.spread.cross .bk{width:78%;margin:0 auto}
+.badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1.7em;height:1.7em;border-radius:50%;display:grid;place-items:center;
+  background:var(--parch);color:var(--ink-violet);border:1.5px solid var(--ink-violet);font-family:var(--f-head);font-size:1em;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+figcaption{font-family:var(--f-hand);color:var(--ink);font-size:.95em;text-align:center;line-height:1.1;white-space:nowrap}
+.pg b{font-weight:normal;color:var(--ink-violet)}
+@media (prefers-reduced-motion:reduce){.leaf,.book{transition:none}}
+</style>
+</head>
+<body>
+<style>
+/* Livre des Rituels de Skylis : ciel d'aube, argent et vent ; texte des rituels en serif ancien pour la lecture à voix haute */
+:root{--desk:#0f1a2a;--desk-glow:#2c4a6e;--gold:#eef4fa;--gold-soft:#9fb6cc;--ink-sky:#24527a;--ink-emote:#9a8667}
+.cover{background:
+  radial-gradient(ellipse at 50% 38%, rgba(255,246,220,.55), transparent 42%),
+  radial-gradient(ellipse at 20% 80%, rgba(255,255,255,.18), transparent 45%),
+  linear-gradient(180deg,#1f4673 0%,#3f78ab 45%,#8db7d9 80%,#c9dcea 100%);color:#fff;box-shadow:inset 0 0 calc(var(--pw)*.12) rgba(10,25,50,.6)}
+.cover::before{opacity:.55;mix-blend-mode:screen;background-size:cover;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='560'><filter id='c'><feTurbulence type='fractalNoise' baseFrequency='.008 .03' numOctaves='4' seed='9'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.6 -.75'/></filter><rect width='100%' height='100%' filter='url(%23c)'/></svg>")}
+.cover .cv{border-color:rgba(255,255,255,.75);outline-color:rgba(255,255,255,.4)}
+.cover .cv h1{color:#fff;text-shadow:0 0 14px rgba(255,255,255,.6),0 1px 2px rgba(10,30,60,.6)}
+.cover .cv .band,.cover .cv .by{color:#f4f8fc;text-shadow:0 1px 2px rgba(10,30,60,.5)}
+.cover .cv .by{font-size:calc(var(--pw)*.07);letter-spacing:.3em}
+.cover .cv svg{color:#fff;filter:drop-shadow(0 0 6px rgba(255,255,255,.6))}
+.spine-l{background:linear-gradient(90deg,rgba(10,25,50,.55),transparent)}
+.spine-r{background:linear-gradient(270deg,rgba(10,25,50,.55),transparent)}
+.endpaper{background:linear-gradient(180deg,#2a5684,#5d8fbd 60%,#a9c8e2)}
+.endpaper::before{content:"";position:absolute;inset:0;opacity:.45;mix-blend-mode:screen;background-size:cover;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='560'><filter id='c'><feTurbulence type='fractalNoise' baseFrequency='.01 .035' numOctaves='4' seed='4'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.6 -.8'/></filter><rect width='100%' height='100%' filter='url(%23c)'/></svg>")}
+.endpaper::after{background:radial-gradient(ellipse,transparent 40%,rgba(10,25,50,.45))}
+.exlib{border-color:#bcd0e2}
+.exlib .name{color:var(--ink-sky)}
+h2{color:var(--ink-sky)}
+
+/* Contenu des rituels */
+.face .pg{gap:calc(var(--pw)*.022);padding-bottom:calc(var(--pw)*.12)}
+.folio{bottom:calc(var(--pw)*.035)}
+.rt{display:flex;flex-direction:column;align-items:center;gap:.15em;text-align:center;margin-bottom:.2em}
+.rt h2{font-family:var(--f-hand);font-size:1.75em;line-height:1.1}
+.rt .sub{font-style:italic;color:var(--ink-soft);font-size:.95em}
+.rt .fl{color:var(--ink-sky);width:75%}
+.rt .fl svg{width:100%;height:auto;display:block}
+.st{font-family:var(--f-head);color:var(--ink-sky);font-size:1.12em;letter-spacing:.04em;margin:0;padding-top:.25em;border-bottom:1px solid rgba(36,82,122,.25)}
+.var{font-family:var(--f-hand);color:var(--ink-sky);font-size:1.15em;margin:0}
+.off{margin:0;font-style:italic;line-height:1.42;font-family:var(--f-body);font-size:1em}
+.off b{font-style:normal;font-weight:normal;font-family:var(--f-head);color:var(--ink-red);letter-spacing:.02em}
+.say{margin:0;font-style:italic;line-height:1.42;font-family:var(--f-body)}
+.verse{margin:0 0 0 1.2em;font-style:italic;line-height:1.5;font-family:var(--f-body);border-left:2px solid rgba(36,82,122,.3);padding-left:.7em}
+.dir{margin:0;font-family:var(--f-body);font-style:normal;font-size:.95em;line-height:1.38;color:var(--ink)}
+.dir.strong{color:var(--ink-red)}
+.emote{margin:0;font-family:var(--f-body);font-style:normal;font-size:.8em;color:var(--ink-emote);letter-spacing:.03em;text-align:right}
+.nb{margin:0;font-family:var(--f-body);font-style:normal;font-size:.88em;line-height:1.36;color:var(--ink-soft);border-left:1px solid var(--ink-soft);padding-left:.6em}
+.nb::before{content:"NB : ";font-family:var(--f-head)}
+.pl{margin:0;padding-left:1.3em;font-family:var(--f-body);font-style:normal;line-height:1.38;display:flex;flex-direction:column;gap:.2em}
+.end{margin:0;font-family:var(--f-hand);text-align:center;color:var(--ink-sky);font-size:1.2em;padding-top:.3em}
+.toc{display:flex;flex-direction:column;gap:.55em;margin-top:.4em}
+.toc a{display:grid;grid-template-columns:1fr auto;gap:.4em;align-items:baseline;color:var(--ink);text-decoration:none;cursor:pointer;font-family:var(--f-hand);font-size:1.25em}
+.toc a span:first-child{display:flex;gap:.3em;align-items:baseline}
+.toc a span:first-child::after{content:"";flex:1;border-bottom:1px dotted var(--ink-soft);min-width:1em}
+.toc a span:last-child{font-family:var(--f-head);font-size:.75em;color:var(--ink-soft)}
+.toc a:hover{color:var(--ink-sky)}
+.measure{position:absolute;left:-9999px;top:0;visibility:hidden}
+@media (prefers-reduced-motion:reduce){.leaf,.book{transition:none}}
+</style>
+
+<div class="wrap">
+  <div class="stage" id="stage"><div class="book" id="book"></div></div>
+  <div class="bar">
+    <button id="prev" aria-label="Page précédente">‹</button>
+    <span class="count" id="count">Couverture</span>
+    <button id="next" aria-label="Page suivante">›</button>
+  </div>
+  <div class="hint">Clique sur une page, glisse du doigt ou utilise les flèches du clavier pour feuilleter.</div>
+</div>
+
+<template id="emb">
+<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+  <circle cx="50" cy="50" r="44"/><circle cx="50" cy="50" r="38" stroke-width="1"/>
+  <path d="M64 22 C46 30,36 48,34 76 M34 76 L31 82"/>
+  <path d="M64 22 C70 40,62 58,36 70 M62 30 L50 36 M60 38 L45 45 M58 46 L42 53 M54 54 L39 61"/>
+  <path d="M20 46 C30 40,40 44,46 40 M18 56 C30 52,38 58,48 54 M22 66 C30 63,34 66,40 64" stroke-width="1.6"/>
+</svg>
+</template>
+<template id="fl"><svg viewBox="0 0 300 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true">
+<path d="M10 12 C40 4,70 20,100 12 S130 6,140 12"/><path d="M290 12 C260 4,230 20,200 12 S170 6,160 12"/>
+<path d="M150 4 C156 10,156 14,150 20 C144 14,144 10,150 4Z" fill="currentColor"/><circle cx="128" cy="12" r="1.6" fill="currentColor"/><circle cx="172" cy="12" r="1.6" fill="currentColor"/></svg></template>
+
+<script>
+const EMB=document.getElementById('emb').innerHTML, FL=document.getElementById('fl').innerHTML;
+const O='<b>Personne qui officie :</b> ';
+/* Chaque bloc : [type, texte]. Types : st (étape), var (variante), off (officiant), say (paroles), verse, dir (indication), strong, emote, nb, list, end */
+const RITUELS=[
+ {t:"Rituel d'Accueil", s:"", b:[
+  ['st','Préparation'],
+  ['dir',"Chaque Skyborn se voit remettre une plume et un ruban de la couleur de la nation, en plus de sa pierre de lune qu'il a dû récolter."],
+  ['st','Première étape'],
+  ['off',"Il fut un temps où le vent arrachait tout, les arbres, les villages, les certitudes. Puis le ciel s'est ouvert, et de sa blessure sont tombées des étoiles qui chantaient. Vous portez en vos mains un éclat de ce ciel. Ce soir, vous le rendez au vent, le temps d'un souffle. Levez vos plumes vers le ciel, elles représentent vos esprits. Pensez à ce qui vous pèse, et laissez le vent les traverser : qu'il emporte ce qui est lourd, et ne vous laisse que ce qui est assez léger pour le suivre."],
+  ['dir',"Les Skyborn doivent s'exécuter."],
+  ['st','Deuxième étape'],
+  ['off',"Prenez maintenant votre pierre de lune dans le creux de votre main. Aéla est née d'un souffle éternel ; le vôtre est encore petit, mais il est le vôtre. Approchez la pierre de vos lèvres, et soufflez doucement sur elle : offrez-lui une part de vous, afin que son éclat porte désormais la trace de votre âme."],
+  ['st','Troisième étape'],
+  ['var','Version avec beaucoup de monde'],
+  ['off',"Mettez-vous en ligne. Ceux qui ont déjà suivi son chemin vont venir à vous, pour lier votre esprit à votre pierre."],
+  ['dir',"Appel des noms méritants de la nation, qui doivent venir nouer les plumes avec les pierres de lune à l'aide des rubans."],
+  ['say',"Nous lions ton esprit à ton éclat de ciel. Ce ruban ne t'enchaîne pas, il te rattache à nous. Bienvenue parmi les Skyborn, que le vent te porte."],
+  ['var','Version avec peu de monde'],
+  ['off',"Mettez-vous en ligne. Je vais venir près de chacun de vous, pour lier votre esprit à votre pierre."],
+  ['dir',"Noue les rubans de chacun."],
+  ['say',"Je lie vos esprits à vos éclats de ciel. Ce ruban ne vous enchaîne pas, il vous rattache à nous. Bienvenue parmi les Skyborn, que le vent vous porte."],
+  ['nb',"Pour ceux qui ont déjà une baguette, leur faire ressentir la pierre à l'intérieur, et nouer le ruban et la plume sur la baguette."]
+ ]},
+ {t:"Rituel de la Lune", s:"Recharge de la pierre de lune et pierre de lithothérapie", b:[
+  ['st','Première étape'],
+  ['off',"Agenouillez-vous, et posez votre baguette devant vous. La pierre qu'elle renferme est née des astres, et la lune, même lorsqu'on ne la voit pas, ne quitte jamais le ciel. Ce soir, nous lui rendons sa pierre, pour qu'elle puisse à nouveau la remplir de sa lumière."],
+  ['dir',"Les Skyborn doivent s'exécuter."],
+  ['emote','/e christianpray4'],
+  ['st','Deuxième étape'],
+  ['off',"Fermez les yeux. Pensez à ce qui vous pèse, une peur, un regret, une fatigue, et confiez ça au vent. Il emporte ce qui est lourd, et votre baguette, qui porte la trace de votre âme, s'en trouve allégée elle aussi. Ce vent est le même qui a soufflé lors du Grand Fendement, le même qui portait Aéla, la Brise Primordiale. Il ne connaît ni chaîne, ni frontière, ni poids. Ce soir, il nous traverse tous, et pour un instant, nous ne faisons plus qu'un, un seul souffle. Sentez la lumière de la lune revenir dans vos pierres. Nous sommes nés entre terre et nuages, et rien ne nous retient."],
+  ['st','Troisième étape'],
+  ['off',"Relevez-vous, reprenez votre baguette, et venez à moi chacun votre tour. Dites-moi ce que vous cherchez, ce que vous craignez, ou ce dont vous avez besoin."],
+  ['dir',"Écoute chaque Skyborn et lui remet la pierre adaptée."],
+  ['say',"Voici [nom de la pierre]. Elle t'aidera à [propriété / intention]. Garde-la près de toi, et que le vent te porte."],
+  ['dir',"Exemple : « Voici l'Œil de tigre. Elle t'aidera à trouver le courage d'affronter ce qui te fait peur. Garde-la près de toi, et que le vent te porte. »"],
+  ['st','Clôture'],
+  ['off',"Que la lune veille sur vos pierres, et qu'Aéla guide vos pas. Le rituel est accompli."],
+  ['nb',"Se référer à la liste des pierres de lithothérapie pour choisir la pierre selon la demande de chaque Skyborn. S'il y a beaucoup de monde, des assistants de rituel pourront avoir été désignés."]
+ ]},
+ {t:"Rituel du Soleil", s:"Récupération du mana via un bain de vent", b:[
+  ['st','Préparation'],
+  ['dir',"Les Skyborn doivent se mettre en cercle, mains jointes (s'il y a trop de monde, faire plusieurs lignes)."],
+  ['st','Première étape'],
+  ['off',"Lors du Grand Fendement, Elyndra ouvrit la voûte des nuages d'un trait de lumière blanche. Ce jour-là, la lumière et le vent se sont rencontrés, et depuis, ils ne se quittent plus. Le soleil réchauffe le vent, et le vent porte cette chaleur partout où il passe, jusqu'à nous. Levez-vous, ouvrez les bras. En cet instant, nous ne demandons rien d'autre que de la recevoir."],
+  ['dir',"Les Skyborn doivent s'exécuter."],
+  ['emote','/e statue3'],
+  ['st','Deuxième étape'],
+  ['off',"Restez ainsi, et écoutez. Le vent ne garde rien pour lui ; il reçoit, il porte, il donne, sans jamais s'arrêter. C'est ainsi que vit un Skyborn. Ce que vous avez offert aux autres, à vos combats, à votre magie, le vent vous le rend aujourd'hui. Sentez cette chaleur descendre jusqu'au bout de vos doigts, jusqu'au creux de votre ventre, jusqu'à la plante de vos pieds. Rien en vous ne doit rester vide."],
+  ['emote','/e palmfistsalute2'],
+  ['st','Troisième étape'],
+  ['off',"Le vent vous a donné ; à votre tour de lui rendre. Tendez les mains devant vous, et expirez lentement, une seule fois. Ce souffle n'emporte pas votre mana ; il est votre remerciement, et il rejoindra le vent pour réchauffer ceux qui en auront besoin après vous."],
+  ['st','Clôture'],
+  ['off',"Ramenez maintenant vos mains contre votre cœur, et gardez en vous ce que le vent vous a offert. Que le soleil vous réchauffe, et qu'Aéla guide vos pas. Nous sommes nés entre terre et nuages, et rien ne nous retient. Le rituel est accompli."],
+  ['emote','/e namaste']
+ ]},
+ {t:"Rituel des Astres", s:"Divination par cartomancie et lithothérapie", b:[
+  ['st','Première étape'],
+  ['off',"Lors du Grand Fendement, le ciel s'est ouvert, et de sa déchirure sont tombés des fragments d'astres qui chantaient sous les doigts. Les astres n'ont jamais cessé de parler ; c'est nous qui avons oublié de les écouter. Asseyez-vous, fermez les yeux, et respirez avec le vent. Laissez vos pensées s'envoler une à une, jusqu'à ce qu'il ne reste plus en vous que le silence. C'est dans ce silence que les astres pourront se faire entendre."],
+  ['dir',"Les Skyborn doivent s'exécuter."],
+  ['emote','/e meditate2'],
+  ['st','Deuxième étape'],
+  ['off',"Le vent porte nos questions jusqu'au ciel, et les astres y répondent à travers les cartes. Avant de parler de chacun de vous, interrogeons-les pour Skylis tout entière. Que nous réserve le chemin du vent ?"],
+  ['dir',"Mélange les cartes, puis tire trois cartes pour la nation."],
+  ['dir',"La première carte parle de ce que Skylis a traversé. La deuxième, de ce qu'elle vit aujourd'hui. La troisième, de ce vers quoi le vent la mène."],
+  ['dir',"Interprète chaque carte à voix haute pour l'assemblée."],
+  ['st','Troisième étape'],
+  ['off',"À présent, que chacun vienne à moi, à son tour. Ne cherchez pas la carte, laissez votre main être guidée comme une plume par le vent. Celle que vous tirerez sera celle que les astres vous destinent."],
+  ['dir',"Chaque Skyborn tire une carte. La personne qui officie l'interprète, puis lui remet la pierre associée."],
+  ['say',"Voici [nom de la carte]. Elle te dit que [interprétation]. Pour t'accompagner sur ce chemin, voici [nom de la pierre]. Elle t'aidera à [propriété / intention]. Garde-la près de toi, et que le vent te porte."],
+  ['st','Clôture'],
+  ['off',"Les astres ont parlé, mais ils ne décident pas à notre place. Ils montrent le vent ; c'est à chacun de vous de choisir comment le suivre. Que la lumière des astres éclaire vos pas, et qu'Aéla vous garde. Nous sommes nés entre terre et nuages, et rien ne nous retient. Le rituel est accompli."],
+  ['nb',"Se référer à la liste des pierres de lithothérapie pour associer la pierre au message de chaque carte."]
+ ]},
+ {t:"Rituel de l'Éclosion, Version 1", s:"", b:[
+  ['st','Préparation'],
+  ['dir',"L'œuf est placé au centre. Les Skyborn se placent en cercle autour de lui."],
+  ['st','Première étape'],
+  ['off',"Cet œuf est un enfant du vent, et il n'a encore jamais vu le ciel. Avant de naître, il doit apprendre le monde qui l'attend. Le vent ne peut pas tout lui raconter ; c'est à nous de le faire."],
+  ['dir',"Les Skyborn répètent phrase par phrase :"],
+  ['verse',"« Que souffle le vent sur cet œuf endormi,<br>Que les cieux lui offrent douceur et abri.<br>Si son heure est venue, qu'il puisse éclore,<br>Sinon, qu'il attende sans aucun effort.<br>Nous ne forçons ni vie ni destin,<br>Car chaque naissance suit son chemin.<br>Sous les vents de Skylis, qu'il soit protégé,<br>Jusqu'au jour où il voudra s'éveiller.<br>Ainsi souffle le vent, ainsi veille Skylis. »"],
+  ['st','Deuxième étape'],
+  ['off',"Chacun votre tour, tendez la main vers lui sans le toucher, et racontez-lui une chose que le vent vous a apprise. Ce que vous avez vu, vécu ou ressenti à Skylis : une joie, une rencontre, une peur surmontée, un endroit qui vous a marqué. Peu importe ce que c'est ; il doit tout connaître de ce monde."],
+  ['dir',"Chaque Skyborn raconte en quelques phrases."],
+  ['st','Troisième étape'],
+  ['off',"Il a entendu vos histoires, et il connaît un peu mieux le ciel qui l'attend. Offrons-lui maintenant nos vœux."],
+  ['dir',"Les Skyborn répètent phrase par phrase :"],
+  ['verse',"« Ô vent d'Aéla, berce cette coquille,<br>Toi qui fis pleuvoir les astres qui scintillent.<br>Porte-lui l'écho du ciel entrouvert,<br>Et le murmure ancien de tout l'univers.<br>Nul ne le réclame, nul ne le retient,<br>Il n'a d'autre maître que son propre chemin.<br>Qu'il dorme encore ou qu'il brise sa nuit,<br>L'aube de Skylis l'attendra sans bruit.<br>Ainsi chante le vent, ainsi attend Skylis. »"],
+  ['st','Clôture'],
+  ['off',"Demain, nous reviendrons lui raconter la suite du monde. Aéla guide vos pas. Le rituel est accompli."]
+ ]},
+ {t:"Rituel de l'Éclosion, Version 2", s:"", b:[
+  ['st','Préparation'],
+  ['dir',"L'œuf est placé au centre. Les Skyborn se placent en cercle autour de lui."],
+  ['st','Première étape'],
+  ['off',"Cet œuf est un enfant du vent, et il n'a encore jamais vu le ciel. Avant de naître, il doit apprendre le monde qui l'attend. Le vent ne peut pas tout lui raconter ; c'est à nous de le faire."],
+  ['dir',"Les Skyborn répètent phrase par phrase :"],
+  ['verse',"« Ô enfant de la Brise Primordiale,<br>Toi qui sommeilles entre terre et nuées,<br>Nul serment ne scelle ton aile,<br>Nulle chaîne ne pèse sur ton souffle.<br>Par la déchirure du ciel ouvert,<br>Par les astres qui chantent encore,<br>Par le souffle éternel d'Aéla,<br>Éveille-toi, si tel est ton vouloir.<br>Demeure, si ton cœur le désire ;<br>Prends ton envol, si le ciel t'appelle.<br>Que ta première aube soit tienne,<br>Et ton premier souffle, libre. »"],
+  ['st','Deuxième étape'],
+  ['off',"Chacun votre tour, tendez la main vers lui sans le toucher, et racontez-lui une chose que le vent vous a apprise. Ce que vous avez vu, vécu ou ressenti à Skylis : une joie, une rencontre, une peur surmontée, un endroit qui vous a marqué. Peu importe ce que c'est ; il doit tout connaître de ce monde."],
+  ['dir',"Chaque Skyborn raconte en quelques phrases."],
+  ['st','Troisième étape'],
+  ['off',"Il a entendu vos histoires, et il connaît un peu mieux le ciel qui l'attend. Offrons-lui maintenant nos vœux."],
+  ['dir',"Les Skyborn répètent phrase par phrase :"],
+  ['verse',"« Vent d'avant les âges, entends-nous.<br>De la plume naît l'aile, de l'aile naît le ciel.<br>Ce qui dort sous la coquille n'appartient qu'à lui-même.<br>Aucun lien ne le retient, aucune voie ne le contraint.<br>Que l'œil s'ouvre, s'il le désire.<br>Que l'aile se déploie, s'il le choisit.<br>Que le souffle s'élève, s'il l'appelle.<br>Ainsi parle le vent, ainsi parle Aéla.<br>Qu'il en soit selon le souffle. »"],
+  ['st','Clôture'],
+  ['off',"Demain, nous reviendrons lui raconter la suite du monde. Aéla guide vos pas. Le rituel est accompli."]
+ ]}
+];
+
+const ROMAN=n=>{const v=[[50,'l'],[40,'xl'],[10,'x'],[9,'ix'],[5,'v'],[4,'iv'],[1,'i']];let r='';for(const[a,s]of v)while(n>=a){r+=s;n-=a}return r};
+function blockHTML(b,cont){
+  const [k,x]=b;
+  switch(k){
+    case 'st': return `<h3 class="st">${x}</h3>`;
+    case 'var': return `<h4 class="var">${x}</h4>`;
+    case 'off': return `<p class="off">${cont?'':O}${x}</p>`;
+    case 'say': return `<p class="say">« ${x} »</p>`.replace(cont?'« ':'¤','');
+    case 'verse': return `<p class="verse">${x}</p>`;
+    case 'dir': return `<p class="dir">${x}</p>`;
+    case 'strong': return `<p class="dir strong">${x}</p>`;
+    case 'emote': return `<p class="emote">${x}</p>`;
+    case 'nb': return `<p class="nb">${x}</p>`;
+    case 'list': return `<ul class="pl">${x.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+    case 'end': return `<p class="end">${x}</p>`;
+  }
+}
+const titleHTML=r=>`<div class="rt"><h2>${r.t}</h2>${r.s?`<div class="sub">${r.s}</div>`:''}<div class="fl">${FL}</div></div>`;
+const pageShell=(inner,num)=>`<div class="gutter"></div><div class="pg">${inner}</div><div class="folio">${num}</div>`;
+
+/* Mise en page automatique : remplit chaque page jusqu'à ce qu'elle déborde */
+function paginate(){
+  const m=document.createElement('div'); m.className='measure';
+  const pw=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pw'));
+  m.style.width=pw+'px'; m.style.height=(pw/0.7)+'px';
+  m.innerHTML='<div class="face front paper" style="position:relative;width:100%;height:100%"><div class="gutter"></div><div class="pg"></div><div class="folio">x</div></div>';
+  document.body.appendChild(m);
+  const pg=m.querySelector('.pg');
+  const fits=()=>{const l=pg.lastElementChild; if(!l) return true; const r=pg.getBoundingClientRect(); const pb=parseFloat(getComputedStyle(pg).paddingBottom); return l.getBoundingClientRect().bottom<=r.bottom-pb+1;};
+  RITUELS.forEach(r=>r.b.forEach(x=>{delete x._glued;}));
+  const pages=[]; const starts=[];
+  let cur=[];
+  const flush=()=>{ if(cur.length){pages.push(cur.join(''));} cur=[]; pg.innerHTML=''; };
+  const tryAdd=html=>{ pg.insertAdjacentHTML('beforeend',html); if(fits()){cur.push(html);return true;} pg.lastElementChild.remove(); return false; };
+  RITUELS.forEach(r=>{
+    flush(); starts.push(pages.length);
+    tryAdd(titleHTML(r));
+    r.b.forEach((b,i)=>{
+      const heading = b[0]==='st'||b[0]==='var';
+      if(heading){
+        // ne pas laisser un titre seul en bas de page : il doit tenir avec le bloc suivant
+        const next=r.b[i+1]; const pair=blockHTML(b)+(next?blockHTML(next):'');
+        pg.insertAdjacentHTML('beforeend','<div class="probe">'+pair+'</div>');
+        const ok=fits(); pg.lastElementChild.remove();
+        if(!ok && cur.length) flush();
+        tryAdd(blockHTML(b)) || (flush(),tryAdd(blockHTML(b)));
+        return;
+      }
+      if((b[0]==='emote'||b[0]==='verse') && b._glued) return;
+      const nv=r.b[i+1];
+      if(b[0]==='dir' && /:\s*$/.test(b[1]) && nv && nv[0]==='verse'){
+        const both=blockHTML(b)+blockHTML(nv); nv._glued=true;
+        if(tryAdd(both)) return;
+        if(cur.length) flush();
+        tryAdd(both)||cur.push(both); return;
+      }
+      const nx=r.b[i+1];
+      if(nx && nx[0]==='emote'){
+        const both=blockHTML(b)+blockHTML(nx);
+        if(tryAdd(both)){ nx._glued=true; return; }
+        if(b[1].length<160){ flush(); tryAdd(both)||cur.push(both); nx._glued=true; return; }
+      }
+      if(tryAdd(blockHTML(b))) return;
+      // paragraphe trop long : on le coupe entre deux phrases
+      if(['off','say','dir'].includes(b[0])){
+        const sent=b[1].match(/[^.!?]+[.!?»]+\s*|[^.!?]+$/g)||[b[1]];
+        let first=true, rest=sent.slice();
+        while(rest.length){
+          let n=rest.length, placed=false;
+          while(n>0){
+            const part=rest.slice(0,n).join('').trim();
+            let html=blockHTML([b[0],part], !first);
+            if(b[0]==='say'){ html=`<p class="say">${first?'« ':''}${part}${n===rest.length?' »':''}</p>`; }
+            if(tryAdd(html)){ rest=rest.slice(n); first=false; placed=true; break; }
+            n--;
+          }
+          if(!placed){ if(cur.length) flush(); else { cur.push(blockHTML([b[0],rest.join('')],!first)); rest=[]; } }
+          else if(rest.length) flush();
+        }
+      } else { flush(); tryAdd(blockHTML(b)) || cur.push(blockHTML(b)); }
+    });
+  });
+  flush();
+  m.remove();
+  return {pages,starts};
+}
+
+const book=document.getElementById('book'), stage=document.getElementById('stage');
+let sides=[], leaves=[], N=0, single=false, s=0, f=0, lastPw=0;
+const FIRST=3; // couverture, ex-libris, sommaire
+function buildSides(){
+  const {pages,starts}=paginate();
+  const toc=RITUELS.map((r,i)=>`<a data-p="${FIRST+starts[i]}"><span>${r.t}</span><span>${ROMAN(starts[i]+2)}</span></a>`).join('');
+  sides=[
+    {cls:'cover', html:`<div class="spine-l"></div><div class="cv"><div class="band">〜 ✦ 〜</div><h1>Livre des Rituels</h1>${EMB}<div class="by">SKYLIS</div><div class="band">〜 ✦ 〜</div></div>`, label:'Couverture'},
+    {cls:'endpaper', html:`<div class="exlib"><div class="small">Ce livre appartient à</div><div class="name">Skylis</div><div class="small">Nation du vent</div><span style="color:var(--ink-sky)">${EMB}</span></div>`, label:'Ex-libris'},
+    {cls:'paper', html:pageShell(`<div class="rt"><h2>Sommaire</h2><div class="fl">${FL}</div></div><nav class="toc">${toc}</nav>`,ROMAN(1)), label:'Sommaire'}
+  ];
+  let ri=0;
+  pages.forEach((p,i)=>{ while(ri+1<starts.length && starts[ri+1]<=i) ri++; sides.push({cls:'paper', html:pageShell(p,ROMAN(i+2)), label:RITUELS[ri].t}); });
+  sides.push({cls:'endpaper', html:'', label:'Garde'});
+  if(sides.length%2===0) sides.push({cls:'endpaper', html:'', label:'Garde'});
+  sides.push({cls:'cover', html:`<div class="spine-r"></div><div class="cv"><div class="band">〜 ✦ 〜</div>${EMB}<div class="band">〜 ✦ 〜</div></div>`, label:'Quatrième de couverture'});
+  book.innerHTML=''; leaves=[]; N=sides.length/2;
+  for(let i=0;i<N;i++){
+    const lf=document.createElement('div'); lf.className='leaf';
+    const a=sides[2*i], b=sides[2*i+1];
+    lf.innerHTML=`<div class="face front ${a.cls}">${a.html}</div><div class="face back ${b.cls}">${b.html}</div>`;
+    lf.addEventListener('click',e=>{ const t=e.target.closest('.toc a'); if(t){ e.stopPropagation(); goTo(+t.dataset.p); return; } (lf.classList.contains('flipped')?prev:next)(); });
+    book.appendChild(lf); leaves.push(lf);
+  }
+}
+function goTo(side){ s=Math.min(side,sides.length-1); f=Math.ceil(s/2); render(); }
+function layout(){
+  const vw=window.innerWidth, vh=window.innerHeight;
+  single = vw<760;
+  const availH = vh-130;
+  let pw = single ? Math.min(vw-32, availH*0.7) : Math.min((vw-48)/2, availH*0.7);
+  pw = Math.max(200, Math.floor(pw));
+  document.documentElement.style.setProperty('--pw', pw+'px');
+  document.documentElement.style.setProperty('--ph', Math.round(pw/0.7)+'px');
+  stage.classList.toggle('single', single);
+  stage.style.width = (single? pw : pw*2)+'px';
+  stage.style.height = Math.round(pw/0.7)+'px';
+  if(Math.abs(pw-lastPw)>2){ const ratio=sides.length? s/(sides.length-1):0; buildSides(); lastPw=pw; s=Math.round(ratio*(sides.length-1)); }
+  if(single){ f=Math.ceil(s/2); } else { s = f===0?0:Math.min(2*f, sides.length-1); f=Math.min(f,N); }
+  render(false);
+}
+function render(animate=true){
+  const pw=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pw'));
+  if(!single) f=Math.min(f,N);
+  leaves.forEach((lf,i)=>{
+    const flipped=i<f;
+    if(flipped!==lf.classList.contains('flipped')){
+      lf.style.zIndex = 100;
+      clearTimeout(lf._t); lf._t=setTimeout(()=>{lf.style.zIndex = lf.classList.contains('flipped')? i+1 : N-i;}, animate?900:0);
+    } else lf.style.zIndex = flipped? i+1 : N-i;
+    lf.classList.toggle('flipped',flipped);
+  });
+  let x=0;
+  if(single){ x = (s%2===0) ? -pw : 0; }
+  else { if(f===0) x=-pw/2; else if(f===N) x=pw/2; }
+  book.style.transform=`translateX(${x}px)`;
+  const label = single ? sides[s].label : (f===0? 'Couverture' : f===N ? 'Quatrième de couverture' : (sides[2*f-1].label===sides[2*f].label? sides[2*f].label : `${sides[2*f-1].label}  ·  ${sides[2*f].label}`));
+  document.getElementById('count').textContent=label;
+  document.getElementById('prev').disabled = single ? s===0 : f===0;
+  document.getElementById('next').disabled = single ? s===sides.length-1 : f===N;
+}
+function next(){ if(single){ if(s<sides.length-1){s++; f=Math.ceil(s/2);} } else if(f<N) f++; render(); }
+function prev(){ if(single){ if(s>0){s--; f=Math.ceil(s/2);} } else if(f>0) f--; render(); }
+document.getElementById('next').onclick=next;
+document.getElementById('prev').onclick=prev;
+document.addEventListener('keydown',e=>{ if(e.key==='ArrowRight')next(); if(e.key==='ArrowLeft')prev(); });
+let tx=null;
+stage.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+stage.addEventListener('touchend',e=>{ if(tx===null)return; const d=e.changedTouches[0].clientX-tx; if(Math.abs(d)>40){ d<0?next():prev(); e.preventDefault(); } tx=null; });
+let rt; window.addEventListener('resize',()=>{clearTimeout(rt); rt=setTimeout(layout,120);});
+const FONTS=['16px "IM Fell English"','italic 16px "IM Fell English"','16px "IM Fell English SC"','16px "La Belle Aurore"','16px "Pinyon Script"'];
+if(document.fonts){
+  Promise.all(FONTS.map(f=>document.fonts.load(f).catch(()=>{}))).then(()=>document.fonts.ready).then(()=>{lastPw=0;layout();});
+  document.fonts.addEventListener && document.fonts.addEventListener('loadingdone',()=>{lastPw=0;layout();});
+}
+layout();
+</script>
+
+</body>
+</html>

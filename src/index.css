@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+/* ============================================================
+   BIBLIOTHÈQUE DE SKYLIS — Nation du vent
+   Turquoise & blanc, étagères claires
+   ============================================================ */
+
+@theme inline {
+  --font-display: "Cinzel", Georgia, serif;
+  --font-body:    "Cormorant Garamond", Georgia, serif;
+
+  --color-skylis-50:  #f0fdfc;
+  --color-skylis-100: #ccfbf5;
+  --color-skylis-200: #99f6ea;
+  --color-skylis-300: #5eead4;
+  --color-skylis-400: #2dd4bf;
+  --color-skylis-500: #14b8a6;
+  --color-skylis-600: #0d9488;
+  --color-skylis-700: #0f766e;
+  --color-skylis-800: #115e59;
+  --color-skylis-900: #134e4a;
+
+  --color-breeze:  #e8fbf8;
+  --color-cloud:   #f7fdfc;
+  --color-ivory:   #ffffff;
+  --color-shelf:   #ffffff;
+  --color-ink:     #0b3b38;
+  --color-ink-soft:#317570;
+}
+
+:root {
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  min-height: 100svh;
+  width: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background-color: var(--color-breeze);
+  background-image:
+    /* Grands halos turquoise doux */
+    radial-gradient(ellipse 60% 50% at 15% 10%,  rgba(94, 234, 212, 0.35), transparent 60%),
+    radial-gradient(ellipse 65% 55% at 90% 85%,  rgba(45, 212, 191, 0.25), transparent 65%),
+    radial-gradient(ellipse 55% 45% at 50% 50%,  rgba(255, 255, 255, 0.9),  transparent 70%),
+    linear-gradient(180deg, #f0fdfc 0%, #e8fbf8 55%, #ccfbf5 100%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Fines particules de vent/poussière */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 14% 12%, rgba(13, 148, 136, 0.35), transparent 60%),
+    radial-gradient(1px 1px at 78% 22%, rgba(13, 148, 136, 0.28), transparent 60%),
+    radial-gradient(0.8px 0.8px at 36% 48%, rgba(13, 148, 136, 0.22), transparent 60%),
+    radial-gradient(1px 1px at 61% 64%, rgba(13, 148, 136, 0.3), transparent 60%),
+    radial-gradient(0.8px 0.8px at 24% 82%, rgba(13, 148, 136, 0.24), transparent 60%),
+    radial-gradient(1px 1px at 88% 72%, rgba(13, 148, 136, 0.28), transparent 60%),
+    radial-gradient(0.9px 0.9px at 52% 30%, rgba(13, 148, 136, 0.2), transparent 60%);
+  background-size: 100% 100%;
+  animation: driftbreeze 9s ease-in-out infinite alternate;
+}
+@keyframes driftbreeze {
+  0%   { opacity: 0.55; transform: translate3d(0, 0, 0); }
+  100% { opacity: 1;    transform: translate3d(6px, -6px, 0); }
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+.font-display { font-family: var(--font-display); }
+.font-body    { font-family: var(--font-body); }
+
+/* ===== Dégradé turquoise pour titres ===== */
+.text-skylis-gradient {
+  background: linear-gradient(180deg, #0d9488 0%, #0f766e 55%, #115e59 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ===== Étagère : planche en bois clair / blanc turquoise ===== */
+.shelf-plank {
+  background:
+    linear-gradient(180deg, #ffffff 0%, #e6f7f5 50%, #c8ece7 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.95),
+    inset 0 -2px 4px rgba(13, 148, 136, 0.2),
+    0 10px 18px -8px rgba(15, 118, 110, 0.35),
+    0 22px 30px -16px rgba(13, 148, 136, 0.25);
+  border-radius: 4px;
+}
+
+.shelf-plank::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -14px;
+  height: 14px;
+  background: linear-gradient(180deg, rgba(13, 148, 136, 0.3), transparent);
+  pointer-events: none;
+}
+
+/* Support latéral de la bibliothèque */
+.shelf-side {
+  background: linear-gradient(90deg, #d7efec 0%, #ffffff 40%, #ffffff 60%, #d7efec 100%);
+  box-shadow:
+    inset 1px 0 0 rgba(255,255,255,0.9),
+    inset -1px 0 0 rgba(255,255,255,0.9),
+    0 0 20px rgba(13, 148, 136, 0.15);
+}
+
+/* ===== Livre individuel ===== */
+.book-spine {
+  position: relative;
+  box-shadow:
+    inset 2px 0 0 rgba(255,255,255,0.25),
+    inset -2px 0 4px rgba(0,0,0,0.3),
+    inset 0 2px 0 rgba(255,255,255,0.4),
+    inset 0 -3px 6px rgba(0,0,0,0.4),
+    0 8px 16px -4px rgba(10, 60, 55, 0.45);
+  transition: transform 0.35s cubic-bezier(.2,.9,.2,1), box-shadow 0.35s;
+  cursor: pointer;
+}
+
+.book-spine::before {
+  /* Reflet vertical sur le dos */
+  content: "";
+  position: absolute;
+  top: 6%;
+  bottom: 6%;
+  left: 18%;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.0), rgba(255,255,255,0.35) 40%, rgba(255,255,255,0.0));
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.book-spine::after {
+  /* Filet doré/nacré en bas du dos */
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Hover et rotation du livre penché : gérés par Motion dans BookSpine.tsx */
+
+/* ===== Utilitaires ===== */
+.no-tap { -webkit-tap-highlight-color: transparent; }
+
+.fancy-scroll::-webkit-scrollbar { width: 8px; }
+.fancy-scroll::-webkit-scrollbar-track { background: transparent; }
+.fancy-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #2dd4bf, #0f766e);
+  border-radius: 4px;
+}
+
+/* Titre */
+.title-shimmer {
+  text-shadow: 0 2px 20px rgba(13, 148, 136, 0.25);
+}
