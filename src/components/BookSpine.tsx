@@ -66,38 +66,24 @@ export function BookSpine({ book, onOpen, leaning = false, locked = false, admin
       whileTap={{ scale: 0.97, rotate: restRotate }}
       transition={{ type: "spring", stiffness: 160, damping: 20 }}
     >
-      {/* Deux filets d'ornement en haut et en bas */}
+      {/* Deux filets d'ornement en haut (au-dessus du titre) */}
       <span
-        className="absolute left-[12%] right-[12%] top-[8%] h-px"
+        className="absolute left-[12%] right-[12%] top-[6%] h-px"
         style={{ background: accent, opacity: 0.85 }}
       />
       <span
-        className="absolute left-[12%] right-[12%] top-[calc(8%+6px)] h-px"
+        className="absolute left-[12%] right-[12%] top-[calc(6%+5px)] h-px"
         style={{ background: accent, opacity: 0.45 }}
       />
-      <span
-        className="absolute left-[12%] right-[12%] bottom-[18%] h-px"
-        style={{ background: accent, opacity: 0.6 }}
-      />
 
-      {/* Petit motif central (losange) */}
+      {/* Deux filets symétriques en bas (sous le titre) */}
       <span
-        className="absolute left-1/2 top-[42%] -translate-x-1/2 rotate-45 block"
-        style={{
-          width: `${Math.max(6, widthPx * 0.25)}px`,
-          height: `${Math.max(6, widthPx * 0.25)}px`,
-          border: `1px solid ${accent}`,
-          opacity: 0.7,
-        }}
+        className="absolute left-[12%] right-[12%] bottom-[6%] h-px"
+        style={{ background: accent, opacity: 0.85 }}
       />
       <span
-        className="absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 mt-[6px] block rounded-full"
-        style={{
-          width: `${Math.max(3, widthPx * 0.1)}px`,
-          height: `${Math.max(3, widthPx * 0.1)}px`,
-          background: accent,
-          opacity: 0.85,
-        }}
+        className="absolute left-[12%] right-[12%] bottom-[calc(6%+5px)] h-px"
+        style={{ background: accent, opacity: 0.45 }}
       />
 
       {/* Titre écrit verticalement — centré, taille adaptée pour tenir dans le dos */}
