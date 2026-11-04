@@ -134,39 +134,11 @@ body::before {
 .book-spine {
   position: relative;
   box-shadow:
-    inset 2px 0 0 rgba(255,255,255,0.25),
     inset -2px 0 4px rgba(0,0,0,0.3),
-    inset 0 2px 0 rgba(255,255,255,0.4),
     inset 0 -3px 6px rgba(0,0,0,0.4),
     0 8px 16px -4px rgba(10, 60, 55, 0.45);
   transition: transform 0.35s cubic-bezier(.2,.9,.2,1), box-shadow 0.35s;
   cursor: pointer;
-}
-
-.book-spine::before {
-  /* Reflet vertical sur le dos */
-  content: "";
-  position: absolute;
-  top: 6%;
-  bottom: 6%;
-  left: 18%;
-  width: 2px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.0), rgba(255,255,255,0.35) 40%, rgba(255,255,255,0.0));
-  border-radius: 2px;
-  pointer-events: none;
-}
-
-.book-spine::after {
-  /* Filet doré/nacré en bas du dos */
-  content: "";
-  position: absolute;
-  left: 10%;
-  right: 10%;
-  bottom: 10%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent);
-  border-radius: 2px;
-  pointer-events: none;
 }
 
 /* Hover et rotation du livre penché : gérés par Motion dans BookSpine.tsx */

@@ -51,9 +51,8 @@ export function BookSpine({ book, onOpen, leaning = false, locked = false, admin
         background: `
           linear-gradient(90deg,
             rgba(0,0,0,0.45) 0%,
-            rgba(255,255,255,0.08) 18%,
-            ${spine} 42%,
-            ${spine} 60%,
+            ${spine} 30%,
+            ${spine} 70%,
             ${spineDeep} 100%
           )
         `,
