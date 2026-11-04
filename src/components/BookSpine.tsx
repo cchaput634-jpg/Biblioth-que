@@ -21,27 +21,29 @@ export function BookSpine({ book, onOpen, leaning = false, locked = false, admin
   const h = book.heightScale ?? 1;
   const t = book.thicknessScale ?? 1;
 
-  // Dos un peu plus épais pour laisser de la place à un titre lisible.
-  const heightPx = Math.round(280 * h);
-  const widthPx = Math.round(56 * t);
+  // Dos épais pour accueillir un vrai titre lisible.
+  const heightPx = Math.round(300 * h);
+  const widthPx = Math.round(64 * t);
 
   const spine = book.spineColor;
   const spineDeep = book.spineColorDeep ?? book.spineColor;
-  const accent = book.accentColor ?? "rgba(255,255,255,0.95)";
+  // Titre toujours crème clair pour un contraste AA/AAA sur n'importe quelle
+  // couleur de dos sombre (le per-book accentColor ne sert plus qu'au cadenas).
+  const titleColor = "#fef0b8";
+  const accent = book.accentColor ?? titleColor;
 
   const restRotate = leaning ? -4 : 0;
   const hoverRotate = leaning ? -3 : -1;
 
-  // Zone utile pour le titre vertical : 90% de la hauteur du dos (plus de filets).
-  // En écriture verticale, le navigateur applique la line-height intrinsèque
-  // de la police (Cinzel ~1.3) sur l'axe inline (vertical). On est donc large
-  // avec perChar = 1.35 pour éviter tout débordement.
+  // Zone utile pour le titre vertical : 92% de la hauteur du dos.
+  // En écriture verticale, chaque caractère de Cinzel occupe ≈ fontSize * 0.72
+  // sur l'axe inline (mesuré empiriquement). Safety = 0.78.
   const spineLabel = book.spineTitle ?? book.title;
-  const usableHeight = heightPx * 0.9;
-  const perChar = 1.35;
-  const baseFont = widthPx * 0.32;
-  // Minimum 10px pour garder de la lisibilité, maximum = largeur du dos
-  const titleFont = Math.max(10, Math.min(baseFont, usableHeight / (spineLabel.length * perChar)));
+  const usableHeight = heightPx * 0.92;
+  const perChar = 0.78;
+  const baseFont = widthPx * 0.42;
+  // Minimum 13px pour une vraie lisibilité ; max = largeur du dos
+  const titleFont = Math.max(13, Math.min(baseFont, usableHeight / (spineLabel.length * perChar)));
 
   return (
     <motion.button
@@ -70,25 +72,31 @@ export function BookSpine({ book, onOpen, leaning = false, locked = false, admin
       whileTap={{ scale: 0.97, rotate: restRotate }}
       transition={{ type: "spring", stiffness: 160, damping: 20 }}
     >
-      {/* Titre écrit verticalement — centré, taille adaptée pour tenir dans le dos */}
+      {/* Zone bornée + centrage horizontal/vertical dans les axes NORMAUX,
+          qui clip tout ce qui dépasse. L'écriture verticale est gérée par
+          le span enfant pour éviter les problèmes d'axes avec writing-mode. */}
       <span
-        className="absolute inset-y-[5%] left-1/2 flex items-center justify-center font-display uppercase overflow-hidden"
-        style={{
-          writingMode: "vertical-rl",
-          transform: "translateX(-50%) rotate(180deg)",
-          color: accent,
-          fontSize: `${titleFont}px`,
-          fontWeight: 600,
-          letterSpacing: "0.03em",
-          lineHeight: 1,
-          // Double ombre pour un contour discret qui garantit la lisibilité
-          // sur n'importe quelle couleur de dos
-          textShadow:
-            "0 0 2px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,0.75), 0 0 1px rgba(0,0,0,0.9)",
-          whiteSpace: "nowrap",
-        }}
+        className="absolute inset-x-0 flex items-center justify-center overflow-hidden"
+        style={{ top: "4%", bottom: "4%" }}
       >
-        {spineLabel}
+        <span
+          className="font-display uppercase"
+          style={{
+            writingMode: "vertical-rl",
+            transform: "rotate(180deg)",
+            color: titleColor,
+            fontSize: `${titleFont}px`,
+            fontWeight: 700,
+            letterSpacing: "0.04em",
+            lineHeight: 1,
+            WebkitTextStroke: "0.3px rgba(0,0,0,0.85)",
+            textShadow:
+              "0 0 3px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,0.85), 0 0 1px rgba(0,0,0,1)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {spineLabel}
+        </span>
       </span>
 
       {/* Cadenas si le livre est verrouillé */}
