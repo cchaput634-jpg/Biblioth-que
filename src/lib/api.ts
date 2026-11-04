@@ -1,9 +1,20 @@
 /**
- * Client minimal pour l'API du Worker (base D1).
- * Toutes les routes passent par /api (proxy Vite en dev, même origine en prod).
+ * Client API pour les mots de passe de livres.
+ *
+ * Les mots de passe des livres sont STOCKÉS CÔTÉ SERVEUR (D1) : un
+ * mot de passe par livre, le même pour tous les lecteurs. Chaque
+ * ouverture d'un livre verrouillé redemande le mot de passe (pas de
+ * cache local « déjà entré »).
+ *
+ * Seul le master password admin peut être vérifié côté client en cas
+ * de pépin réseau — c'est juste une comparaison avec une constante
+ * publique de toute façon.
  */
 
+const MASTER_PASSWORD = "Skylis4Ever";
 const SESSION_KEY = "bibliotheque:admin-password:v1";
+
+/* -------- Session admin -------- */
 
 function getAdminPassword(): string | null {
   try {
@@ -22,49 +33,62 @@ function setAdminPasswordSession(pw: string | null) {
   }
 }
 
-/* -------- Routes publiques -------- */
-
-export async function fetchLockedBooks(): Promise<Set<string>> {
-  const res = await fetch("/api/locked");
-  if (!res.ok) return new Set();
-  const data = (await res.json()) as { lockedBookIds: string[] };
-  return new Set(data.lockedBookIds ?? []);
-}
-
-export async function verifyBookPassword(
-  bookId: string,
-  password: string,
-): Promise<boolean> {
-  const res = await fetch(`/api/verify/${encodeURIComponent(bookId)}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
-  });
-  if (!res.ok) return false;
-  const data = (await res.json()) as { ok: boolean };
-  return !!data.ok;
-}
-
-/* -------- Admin -------- */
-
-export async function verifyAdminPassword(password: string): Promise<boolean> {
-  const res = await fetch("/api/admin/verify", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
-  });
-  if (!res.ok) return false;
-  const data = (await res.json()) as { ok: boolean };
-  if (data.ok) setAdminPasswordSession(password);
-  return !!data.ok;
+export function isAdminEnabled(): boolean {
+  return getAdminPassword() !== null;
 }
 
 export function logoutAdmin() {
   setAdminPasswordSession(null);
 }
 
-export function isAdminEnabled(): boolean {
-  return getAdminPassword() !== null;
+/* -------- Appels API -------- */
+
+async function apiJson<T>(path: string, init?: RequestInit): Promise<T | null> {
+  try {
+    const res = await fetch(path, init);
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
+/* -------- Routes publiques -------- */
+
+export async function fetchLockedBooks(): Promise<Set<string>> {
+  const data = await apiJson<{ lockedBookIds: string[] }>("/api/locked");
+  return new Set(data?.lockedBookIds ?? []);
+}
+
+export async function verifyBookPassword(
+  bookId: string,
+  password: string,
+): Promise<boolean> {
+  const data = await apiJson<{ ok: boolean }>(
+    `/api/verify/${encodeURIComponent(bookId)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    },
+  );
+  return !!data?.ok;
+}
+
+/* -------- Admin -------- */
+
+export async function verifyAdminPassword(password: string): Promise<boolean> {
+  const data = await apiJson<{ ok: boolean }>("/api/admin/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  // Si l'API répond, on se fie à sa réponse. Sinon fallback client
+  // (la constante est déjà publique dans le worker, donc aucune
+  // sécurité en moins).
+  const ok = data ? !!data.ok : password === MASTER_PASSWORD;
+  if (ok) setAdminPasswordSession(password);
+  return ok;
 }
 
 function adminHeaders(): HeadersInit {
@@ -73,27 +97,32 @@ function adminHeaders(): HeadersInit {
 }
 
 export async function fetchAllPasswords(): Promise<Record<string, string>> {
-  const res = await fetch("/api/admin/passwords", {
+  const data = await apiJson<Record<string, string>>("/api/admin/passwords", {
     headers: adminHeaders(),
   });
-  if (!res.ok) return {};
-  return (await res.json()) as Record<string, string>;
+  return data ?? {};
 }
 
 export async function setBookPassword(
   bookId: string,
   password: string,
 ): Promise<void> {
-  await fetch(`/api/admin/passwords/${encodeURIComponent(bookId)}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json", ...adminHeaders() },
-    body: JSON.stringify({ password }),
-  });
+  await apiJson<{ ok: boolean }>(
+    `/api/admin/passwords/${encodeURIComponent(bookId)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...adminHeaders() },
+      body: JSON.stringify({ password }),
+    },
+  );
 }
 
 export async function deleteBookPassword(bookId: string): Promise<void> {
-  await fetch(`/api/admin/passwords/${encodeURIComponent(bookId)}`, {
-    method: "DELETE",
-    headers: adminHeaders(),
-  });
+  await apiJson<{ ok: boolean }>(
+    `/api/admin/passwords/${encodeURIComponent(bookId)}`,
+    {
+      method: "DELETE",
+      headers: adminHeaders(),
+    },
+  );
 }
