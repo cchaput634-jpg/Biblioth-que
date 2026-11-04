@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { X, Lock } from "lucide-react";
+import { X, Lock, Eye, EyeOff } from "lucide-react";
 
 interface Props {
   title: string;
@@ -27,6 +27,7 @@ export function PasswordDialog({
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [reveal, setReveal] = useState(revealByDefault);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -105,17 +106,28 @@ export function PasswordDialog({
 
         <label className="block">
           <span className="font-body text-sm text-ink-soft">Mot de passe</span>
-          <input
-            ref={inputRef}
-            type={revealByDefault ? "text" : "password"}
-            value={value}
-            onChange={(e) => {
-              setValue(e.target.value);
-              setError(null);
-            }}
-            autoComplete="off"
-            className="mt-1 w-full rounded-md border border-skylis-300/80 bg-skylis-50/60 px-3 py-2 text-ink outline-none focus:border-skylis-500 focus:bg-white focus:ring-2 focus:ring-skylis-300/50"
-          />
+          <div className="relative mt-1">
+            <input
+              ref={inputRef}
+              type={reveal ? "text" : "password"}
+              value={value}
+              onChange={(e) => {
+                setValue(e.target.value);
+                setError(null);
+              }}
+              autoComplete="off"
+              className="w-full rounded-md border border-skylis-300/80 bg-skylis-50/60 pl-3 pr-10 py-2 text-ink outline-none focus:border-skylis-500 focus:bg-white focus:ring-2 focus:ring-skylis-300/50"
+            />
+            <button
+              type="button"
+              onClick={() => setReveal((r) => !r)}
+              aria-label={reveal ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              title={reveal ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-skylis-700/70 hover:text-skylis-800 no-tap"
+            >
+              {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
         </label>
 
         {error && (
