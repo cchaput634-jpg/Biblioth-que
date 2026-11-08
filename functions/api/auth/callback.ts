@@ -107,16 +107,16 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
     .bind(now)
     .run();
 
-  return new Response(null, {
-    status: 302,
-    headers: {
-      Location: returnTo,
-      "Set-Cookie": [
-        `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_DURATION_SEC}`,
-        `oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`,
-      ].join(", "),
-    },
-  });
+  const headers = new Headers({ Location: returnTo });
+  headers.append(
+    "Set-Cookie",
+    `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_DURATION_SEC}`,
+  );
+  headers.append(
+    "Set-Cookie",
+    `oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`,
+  );
+  return new Response(null, { status: 302, headers });
 };
 
 function errorRedirect(appUrl: string, reason: string): Response {
