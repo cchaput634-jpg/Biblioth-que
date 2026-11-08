@@ -319,7 +319,7 @@ function RoleEditor({
 
         <PermCheckbox
           label="Administration — gérer rôles, utilisateurs et livres"
-          desc="Accès au panneau admin + modification des rôles, utilisateurs et livres restreints."
+          desc="Accès au panneau admin, modification des rôles, utilisateurs et livres restreints, et ouverture de TOUS les livres (y compris restreints)."
           checked={perms.has("manage_users")}
           onChange={() => togglePerm("manage_users")}
         />

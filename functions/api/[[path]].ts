@@ -56,6 +56,9 @@ async function handleApi(
   // GET /api/locked — liste des livres restreints (côté client pour afficher
   // le cadenas), AVEC la liste des livres que l'utilisateur courant peut
   // néanmoins ouvrir grâce à ses permissions.
+  //
+  // Un utilisateur Super Admin OU titulaire de manage_users ouvre tous les
+  // livres implicitement : s'il gère les accès, il peut lire aussi.
   if (parts[1] === "locked" && !parts[2] && request.method === "GET") {
     const rows = await env.DB.prepare(
       "SELECT book_id FROM restricted_books",
@@ -69,8 +72,9 @@ async function handleApi(
         env,
         user.discord_id,
       );
+      const bypass = isSuper || permissions.has("manage_users");
       allowed = restricted.filter(
-        (b) => isSuper || permissions.has(`open_book:${b}`),
+        (b) => bypass || permissions.has(`open_book:${b}`),
       );
     }
     return json({ restrictedBookIds: restricted, allowedBookIds: allowed });
@@ -90,7 +94,10 @@ async function handleApi(
     if (!user) return json({ allowed: false });
     const { permissions, isSuper } = await getUserPermissions(env, user.discord_id);
     return json({
-      allowed: isSuper || permissions.has(`open_book:${bookId}`),
+      allowed:
+        isSuper ||
+        permissions.has("manage_users") ||
+        permissions.has(`open_book:${bookId}`),
     });
   }
 
