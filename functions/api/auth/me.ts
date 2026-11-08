@@ -1,7 +1,10 @@
 /**
  * GET /api/auth/me
- * Retourne l'utilisateur courant, ou null si pas de session valide.
+ * Retourne l'utilisateur courant (ou null) + ses permissions effectives.
+ * Promeut automatiquement le premier user connecté en Super Admin.
  */
+
+import { ensureBootstrapSuperAdmin, getUserPermissions } from "../_perms";
 
 interface Env {
   DB: D1Database;
@@ -9,8 +12,19 @@ interface Env {
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
   const user = await getSessionUser(env, request);
-  return new Response(JSON.stringify({ user }), {
-    headers: { "Content-Type": "application/json; charset=utf-8" },
+  if (!user) {
+    return json({ user: null, permissions: [], isSuper: false });
+  }
+
+  // Bootstrap : si personne n'est encore super admin, l'utilisateur
+  // actuellement connecté le devient.
+  await ensureBootstrapSuperAdmin(env, user.discord_id);
+
+  const { permissions, isSuper } = await getUserPermissions(env, user.discord_id);
+  return json({
+    user,
+    permissions: [...permissions],
+    isSuper,
   });
 };
 
@@ -42,4 +56,11 @@ export async function getSessionUser(
     .first<{ discord_id: string; username: string; avatar: string | null }>();
 
   return row ?? null;
+}
+
+function json(payload: unknown, status = 200) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+  });
 }

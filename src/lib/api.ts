@@ -1,40 +1,40 @@
 /**
- * Client API pour les mots de passe de livres + l'authentification Discord.
+ * Client API — modèle rôles & permissions.
  *
- * - Les mots de passe des livres sont stockés en D1 (identiques pour tous).
- * - Un utilisateur Discord connecté peut avoir des accès directs par livre
- *   accordés par l'admin, qui lui permettent d'ouvrir le livre sans mot de passe.
- * - Le master password admin a un fallback client (constante publique de toute façon).
+ * - Login Discord OAuth
+ * - Permissions effectives du user courant (via rôles)
+ * - Super Admin = tous les droits implicitement
+ * - Un livre est "restreint" ou "public" ; un livre restreint nécessite
+ *   la permission open_book:<id> pour être ouvert.
  */
 
-const MASTER_PASSWORD = "Skylis4Ever";
-const SESSION_KEY = "bibliotheque:admin-password:v1";
+/* -------- Types -------- */
 
-/* -------- Session admin -------- */
-
-function getAdminPassword(): string | null {
-  try {
-    return sessionStorage.getItem(SESSION_KEY);
-  } catch {
-    return null;
-  }
+export interface DiscordUser {
+  discord_id: string;
+  username: string;
+  avatar: string | null;
 }
 
-function setAdminPasswordSession(pw: string | null) {
-  try {
-    if (pw) sessionStorage.setItem(SESSION_KEY, pw);
-    else sessionStorage.removeItem(SESSION_KEY);
-  } catch {
-    /* ignore */
-  }
+export interface MeResponse {
+  user: DiscordUser | null;
+  permissions: string[];
+  isSuper: boolean;
 }
 
-export function isAdminEnabled(): boolean {
-  return getAdminPassword() !== null;
+export interface Role {
+  id: string;
+  name: string;
+  isSuper: boolean;
+  permissions: string[];
 }
 
-export function logoutAdmin() {
-  setAdminPasswordSession(null);
+export interface AdminUser {
+  discord_id: string;
+  username: string;
+  avatar: string | null;
+  last_seen: number;
+  roles: string[]; // role ids
 }
 
 /* -------- Helpers -------- */
@@ -49,17 +49,13 @@ async function apiJson<T>(path: string, init?: RequestInit): Promise<T | null> {
   }
 }
 
-/* -------- Discord auth -------- */
+/* -------- Auth Discord -------- */
 
-export interface DiscordUser {
-  discord_id: string;
-  username: string;
-  avatar: string | null;
-}
-
-export async function fetchCurrentUser(): Promise<DiscordUser | null> {
-  const data = await apiJson<{ user: DiscordUser | null }>("/api/auth/me");
-  return data?.user ?? null;
+export async function fetchMe(): Promise<MeResponse> {
+  const data = await apiJson<MeResponse>("/api/auth/me");
+  return (
+    data ?? { user: null, permissions: [], isSuper: false }
+  );
 }
 
 export function loginWithDiscord() {
@@ -71,127 +67,96 @@ export async function logoutDiscord(): Promise<void> {
   await fetch("/api/auth/logout", { method: "POST" });
 }
 
-/* -------- Routes publiques -------- */
+/* -------- Livres -------- */
 
-export async function fetchLockedBooks(): Promise<Set<string>> {
-  const data = await apiJson<{ lockedBookIds: string[] }>("/api/locked");
-  return new Set(data?.lockedBookIds ?? []);
+export interface LockedResponse {
+  restrictedBookIds: string[]; // livres marqués restreints
+  allowedBookIds: string[]; // parmi les restreints, ceux que le user peut ouvrir
 }
 
-/** Vérifie si l'utilisateur connecté a un accès direct au livre (sans mot de passe). */
-export async function hasDirectAccess(bookId: string): Promise<boolean> {
-  const data = await apiJson<{ allowed: boolean }>(
-    `/api/access/${encodeURIComponent(bookId)}`,
-  );
-  return !!data?.allowed;
+export async function fetchLockedBooks(): Promise<LockedResponse> {
+  const data = await apiJson<LockedResponse>("/api/locked");
+  return data ?? { restrictedBookIds: [], allowedBookIds: [] };
 }
 
-export async function verifyBookPassword(
-  bookId: string,
-  password: string,
-): Promise<boolean> {
-  const data = await apiJson<{ ok: boolean }>(
-    `/api/verify/${encodeURIComponent(bookId)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    },
-  );
-  return !!data?.ok;
-}
+/* -------- Admin : rôles -------- */
 
-/* -------- Admin : mot de passe maître -------- */
-
-export async function verifyAdminPassword(password: string): Promise<boolean> {
-  const data = await apiJson<{ ok: boolean }>("/api/admin/verify", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
-  });
-  const ok = data ? !!data.ok : password === MASTER_PASSWORD;
-  if (ok) setAdminPasswordSession(password);
-  return ok;
-}
-
-function adminHeaders(): HeadersInit {
-  const pw = getAdminPassword();
-  return pw ? { "X-Admin-Password": pw } : {};
-}
-
-/* -------- Admin : mots de passe de livres -------- */
-
-export async function fetchAllPasswords(): Promise<Record<string, string>> {
-  const data = await apiJson<Record<string, string>>("/api/admin/passwords", {
-    headers: adminHeaders(),
-  });
-  return data ?? {};
-}
-
-export async function setBookPassword(
-  bookId: string,
-  password: string,
-): Promise<void> {
-  await apiJson<{ ok: boolean }>(
-    `/api/admin/passwords/${encodeURIComponent(bookId)}`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", ...adminHeaders() },
-      body: JSON.stringify({ password }),
-    },
-  );
-}
-
-export async function deleteBookPassword(bookId: string): Promise<void> {
-  await apiJson<{ ok: boolean }>(
-    `/api/admin/passwords/${encodeURIComponent(bookId)}`,
-    {
-      method: "DELETE",
-      headers: adminHeaders(),
-    },
-  );
-}
-
-/* -------- Admin : accès utilisateurs -------- */
-
-export interface AdminUser {
-  discord_id: string;
-  username: string;
-  avatar: string | null;
-  last_seen: number;
-  books: string[];
-}
-
-export async function fetchUsers(): Promise<AdminUser[]> {
-  const data = await apiJson<AdminUser[]>("/api/admin/users", {
-    headers: adminHeaders(),
-  });
+export async function fetchRoles(): Promise<Role[]> {
+  const data = await apiJson<Role[]>("/api/admin/roles");
   return data ?? [];
 }
 
-export async function grantAccess(
-  userId: string,
-  bookId: string,
-): Promise<void> {
-  await apiJson<{ ok: boolean }>(
-    `/api/admin/access/${encodeURIComponent(userId)}/${encodeURIComponent(bookId)}`,
-    { method: "PUT", headers: adminHeaders() },
-  );
+export async function createRole(
+  name: string,
+  permissions: string[],
+): Promise<string | null> {
+  const data = await apiJson<{ id: string }>("/api/admin/roles", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, permissions }),
+  });
+  return data?.id ?? null;
 }
 
-export async function revokeAccess(
+export async function updateRole(
+  roleId: string,
+  patch: { name?: string; permissions?: string[] },
+): Promise<void> {
+  await apiJson<{ ok: boolean }>(`/api/admin/roles/${encodeURIComponent(roleId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+}
+
+export async function deleteRole(roleId: string): Promise<void> {
+  await apiJson<{ ok: boolean }>(`/api/admin/roles/${encodeURIComponent(roleId)}`, {
+    method: "DELETE",
+  });
+}
+
+/* -------- Admin : utilisateurs -------- */
+
+export async function fetchUsers(): Promise<AdminUser[]> {
+  const data = await apiJson<AdminUser[]>("/api/admin/users");
+  return data ?? [];
+}
+
+export async function setUserRoles(
   userId: string,
-  bookId: string,
+  roleIds: string[],
 ): Promise<void> {
   await apiJson<{ ok: boolean }>(
-    `/api/admin/access/${encodeURIComponent(userId)}/${encodeURIComponent(bookId)}`,
-    { method: "DELETE", headers: adminHeaders() },
+    `/api/admin/users/${encodeURIComponent(userId)}/roles`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roles: roleIds }),
+    },
   );
 }
 
 export async function deleteUser(userId: string): Promise<void> {
-  await apiJson<{ ok: boolean }>(
-    `/api/admin/users/${encodeURIComponent(userId)}`,
-    { method: "DELETE", headers: adminHeaders() },
-  );
+  await apiJson<{ ok: boolean }>(`/api/admin/users/${encodeURIComponent(userId)}`, {
+    method: "DELETE",
+  });
+}
+
+/* -------- Admin : livres restreints -------- */
+
+export async function fetchRestrictedBooks(): Promise<Set<string>> {
+  const data = await apiJson<{ restrictedBookIds: string[] }>("/api/admin/books");
+  return new Set(data?.restrictedBookIds ?? []);
+}
+
+export async function restrictBook(bookId: string): Promise<void> {
+  await apiJson<{ ok: boolean }>(`/api/admin/books/${encodeURIComponent(bookId)}`, {
+    method: "PUT",
+  });
+}
+
+export async function unrestrictBook(bookId: string): Promise<void> {
+  await apiJson<{ ok: boolean }>(`/api/admin/books/${encodeURIComponent(bookId)}`, {
+    method: "DELETE",
+  });
 }

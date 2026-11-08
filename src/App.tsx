@@ -1,86 +1,68 @@
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Lock, LogOut, Unlock, Users } from "lucide-react";
+import { Lock, LogOut, Settings } from "lucide-react";
 import { BOOKS } from "@/data/books";
 import type { Book } from "@/types";
 import { BookSpine } from "@/components/BookSpine";
 import { Shelf } from "@/components/Shelf";
 import { BookReader } from "@/components/BookReader";
-import { PasswordDialog } from "@/components/PasswordDialog";
-import { BookPasswordEditor } from "@/components/BookPasswordEditor";
-import { UserAccessPanel } from "@/components/UserAccessPanel";
+import { AdminPanel } from "@/components/AdminPanel";
 import {
-  fetchCurrentUser,
   fetchLockedBooks,
-  hasDirectAccess,
-  isAdminEnabled,
+  fetchMe,
   loginWithDiscord,
-  logoutAdmin,
   logoutDiscord,
-  verifyAdminPassword,
-  verifyBookPassword,
   type DiscordUser,
 } from "@/lib/api";
 
-type Modal =
-  | { kind: "none" }
-  | { kind: "master" }
-  | { kind: "unlock"; book: Book }
-  | { kind: "edit"; book: Book }
-  | { kind: "users" };
+type Modal = { kind: "none" } | { kind: "admin" } | { kind: "denied"; book: Book };
 
 export function App() {
   const [openBook, setOpenBook] = useState<Book | null>(null);
-  const [admin, setAdmin] = useState<boolean>(() => isAdminEnabled());
   const [modal, setModal] = useState<Modal>({ kind: "none" });
-  const [locked, setLocked] = useState<Set<string>>(new Set());
   const [user, setUser] = useState<DiscordUser | null>(null);
+  const [isSuper, setIsSuper] = useState(false);
+  const [permissions, setPermissions] = useState<Set<string>>(new Set());
+  const [restricted, setRestricted] = useState<Set<string>>(new Set());
+  const [allowed, setAllowed] = useState<Set<string>>(new Set());
 
-  const refreshLocked = useCallback(async () => {
-    setLocked(await fetchLockedBooks());
+  const refresh = useCallback(async () => {
+    const [me, locked] = await Promise.all([fetchMe(), fetchLockedBooks()]);
+    setUser(me.user);
+    setIsSuper(me.isSuper);
+    setPermissions(new Set(me.permissions));
+    setRestricted(new Set(locked.restrictedBookIds));
+    setAllowed(new Set(locked.allowedBookIds));
   }, []);
 
   useEffect(() => {
-    void refreshLocked();
-    void fetchCurrentUser().then(setUser);
-  }, [refreshLocked]);
+    void refresh();
+  }, [refresh]);
 
   const closeModal = useCallback(() => setModal({ kind: "none" }), []);
+  const canManage = isSuper || permissions.has("manage_users");
 
-  async function handleBookClick(book: Book) {
-    if (admin) {
-      setModal({ kind: "edit", book });
-      return;
-    }
-    if (!locked.has(book.id)) {
-      setOpenBook(book);
-      return;
-    }
-    // Livre verrouillé : si user connecté et autorisé → ouverture directe
-    if (user && (await hasDirectAccess(book.id))) {
-      setOpenBook(book);
-      return;
-    }
-    setModal({ kind: "unlock", book });
+  function canOpen(bookId: string): boolean {
+    if (!restricted.has(bookId)) return true;
+    return isSuper || allowed.has(bookId);
   }
 
-  function handlePadlockClick() {
-    if (admin) {
-      logoutAdmin();
-      setAdmin(false);
+  function handleBookClick(book: Book) {
+    if (canOpen(book.id)) {
+      setOpenBook(book);
     } else {
-      setModal({ kind: "master" });
+      setModal({ kind: "denied", book });
     }
   }
 
   async function handleDiscordLogout() {
     await logoutDiscord();
-    setUser(null);
+    await refresh();
   }
 
   return (
     <main className="flex-1 flex flex-col items-center px-4 sm:px-8 pb-16">
-      {/* Barre haut : Discord à gauche, Admin à droite */}
+      {/* Barre haut : Discord à gauche, Admin à droite (si permission) */}
       <div className="w-full max-w-5xl flex justify-between items-center gap-3 pt-4">
         <div>
           {user ? (
@@ -97,6 +79,11 @@ export function App() {
                 </span>
               )}
               <span className="font-body text-ink">{user.username}</span>
+              {isSuper && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-body">
+                  Super Admin
+                </span>
+              )}
               <button
                 type="button"
                 onClick={handleDiscordLogout}
@@ -121,38 +108,18 @@ export function App() {
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          {admin && (
-            <motion.button
-              type="button"
-              onClick={() => setModal({ kind: "users" })}
-              whileTap={{ scale: 0.9 }}
-              whileHover={{ y: -2 }}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full border border-skylis-400/70 bg-white text-skylis-700 text-sm font-display tracking-wider hover:bg-skylis-50 no-tap"
-            >
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Accès</span>
-            </motion.button>
-          )}
+        {canManage && (
           <motion.button
             type="button"
-            onClick={handlePadlockClick}
+            onClick={() => setModal({ kind: "admin" })}
             whileTap={{ scale: 0.9 }}
             whileHover={{ y: -2 }}
-            aria-label={admin ? "Quitter le mode administrateur" : "Mode administrateur"}
-            title={admin ? "Quitter le mode administrateur" : "Mode administrateur"}
-            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-full border text-sm font-display tracking-wider no-tap transition-colors ${
-              admin
-                ? "bg-skylis-600 text-white border-skylis-700 shadow-[0_6px_20px_-6px_rgba(13,148,136,0.7)]"
-                : "bg-white/70 text-skylis-700 border-skylis-300/70 hover:bg-white hover:border-skylis-500"
-            }`}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full border border-skylis-400/70 bg-white text-skylis-700 text-sm font-display tracking-wider hover:bg-skylis-50 no-tap"
           >
-            {admin ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-            <span className="hidden sm:inline">
-              {admin ? "Admin actif" : "Admin"}
-            </span>
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">Administration</span>
           </motion.button>
-        </div>
+        )}
       </div>
 
       <header className="text-center my-6 sm:my-8">
@@ -164,9 +131,7 @@ export function App() {
         </h1>
         <div className="mx-auto mt-4 h-px w-36 bg-gradient-to-r from-transparent via-skylis-500/70 to-transparent" />
         <p className="font-body text-sm sm:text-base text-ink-soft mt-4 max-w-xl mx-auto">
-          {admin
-            ? "Mode administrateur — cliquez un livre pour éditer son mot de passe."
-            : "Effleurez un dos de livre pour l'ouvrir."}
+          Effleurez un dos de livre pour l'ouvrir.
         </p>
       </header>
 
@@ -182,8 +147,7 @@ export function App() {
                 book={book}
                 onOpen={() => handleBookClick(book)}
                 leaning={idx === BOOKS.length - 1}
-                locked={locked.has(book.id)}
-                adminMode={admin}
+                locked={restricted.has(book.id) && !canOpen(book.id)}
               />
             ))}
           </Shelf>
@@ -201,58 +165,95 @@ export function App() {
           <BookReader book={openBook} onClose={() => setOpenBook(null)} />
         )}
 
-        {modal.kind === "master" && (
-          <PasswordDialog
-            key="master"
-            title="Mode administrateur"
-            description="Entrez le mot de passe maître."
-            submitLabel="Déverrouiller"
-            onCancel={closeModal}
-            onSubmit={async (pw) => {
-              const ok = await verifyAdminPassword(pw);
-              if (ok) {
-                setAdmin(true);
-                closeModal();
-                return true;
-              }
-              return false;
+        {modal.kind === "admin" && (
+          <AdminPanel
+            onClose={async () => {
+              closeModal();
+              await refresh();
             }}
           />
         )}
 
-        {modal.kind === "unlock" && (
-          <PasswordDialog
-            key={`unlock-${modal.book.id}`}
-            title={modal.book.title}
-            description="Ce livre est verrouillé."
-            submitLabel="Ouvrir"
-            onCancel={closeModal}
-            onSubmit={async (pw) => {
-              if (modal.kind !== "unlock") return false;
-              const ok = await verifyBookPassword(modal.book.id, pw);
-              if (ok) {
-                const b = modal.book;
-                closeModal();
-                setOpenBook(b);
-                return true;
-              }
-              return false;
-            }}
-          />
-        )}
-
-        {modal.kind === "edit" && (
-          <BookPasswordEditor
-            key={`edit-${modal.book.id}`}
+        {modal.kind === "denied" && (
+          <AccessDenied
             book={modal.book}
-            onSaved={refreshLocked}
+            isLoggedIn={!!user}
             onClose={closeModal}
+            onLogin={loginWithDiscord}
           />
         )}
-
-        {modal.kind === "users" && <UserAccessPanel onClose={closeModal} />}
       </AnimatePresence>
     </main>
+  );
+}
+
+function AccessDenied({
+  book,
+  isLoggedIn,
+  onClose,
+  onLogin,
+}: {
+  book: Book;
+  isLoggedIn: boolean;
+  onClose: () => void;
+  onLogin: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-skylis-900/40 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.92, y: 20, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.92, y: 20, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 240, damping: 24 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-sm bg-white border border-skylis-300/70 rounded-xl shadow-xl p-6"
+      >
+        <div className="flex items-center gap-3 mb-3">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-skylis-100 text-skylis-700">
+            <Lock className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="font-display text-lg text-skylis-gradient tracking-wider truncate">
+              {book.title}
+            </h2>
+            <p className="font-body italic text-sm text-skylis-700/80">
+              Livre restreint
+            </p>
+          </div>
+        </div>
+        <p className="font-body text-sm text-ink mb-5">
+          {isLoggedIn
+            ? "Tu n'as pas la permission d'ouvrir ce livre. Demande à un administrateur de te l'accorder via un rôle."
+            : "Ce livre est réservé à certains utilisateurs. Connecte-toi via Discord pour voir si tu y as accès."}
+        </p>
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3 py-2 rounded-md text-sm font-body text-ink-soft hover:bg-skylis-50 no-tap"
+          >
+            Fermer
+          </button>
+          {!isLoggedIn && (
+            <button
+              type="button"
+              onClick={onLogin}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#5865F2] text-white text-sm font-display tracking-wider hover:bg-[#4752C4] no-tap"
+            >
+              <DiscordIcon className="h-4 w-4" />
+              Se connecter
+            </button>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
