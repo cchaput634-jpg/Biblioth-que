@@ -1,14 +1,10 @@
 /**
- * Client API pour les mots de passe de livres.
+ * Client API pour les mots de passe de livres + l'authentification Discord.
  *
- * Les mots de passe des livres sont STOCKÉS CÔTÉ SERVEUR (D1) : un
- * mot de passe par livre, le même pour tous les lecteurs. Chaque
- * ouverture d'un livre verrouillé redemande le mot de passe (pas de
- * cache local « déjà entré »).
- *
- * Seul le master password admin peut être vérifié côté client en cas
- * de pépin réseau — c'est juste une comparaison avec une constante
- * publique de toute façon.
+ * - Les mots de passe des livres sont stockés en D1 (identiques pour tous).
+ * - Un utilisateur Discord connecté peut avoir des accès directs par livre
+ *   accordés par l'admin, qui lui permettent d'ouvrir le livre sans mot de passe.
+ * - Le master password admin a un fallback client (constante publique de toute façon).
  */
 
 const MASTER_PASSWORD = "Skylis4Ever";
@@ -41,7 +37,7 @@ export function logoutAdmin() {
   setAdminPasswordSession(null);
 }
 
-/* -------- Appels API -------- */
+/* -------- Helpers -------- */
 
 async function apiJson<T>(path: string, init?: RequestInit): Promise<T | null> {
   try {
@@ -53,11 +49,41 @@ async function apiJson<T>(path: string, init?: RequestInit): Promise<T | null> {
   }
 }
 
+/* -------- Discord auth -------- */
+
+export interface DiscordUser {
+  discord_id: string;
+  username: string;
+  avatar: string | null;
+}
+
+export async function fetchCurrentUser(): Promise<DiscordUser | null> {
+  const data = await apiJson<{ user: DiscordUser | null }>("/api/auth/me");
+  return data?.user ?? null;
+}
+
+export function loginWithDiscord() {
+  const returnTo = window.location.pathname + window.location.search;
+  window.location.href = `/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`;
+}
+
+export async function logoutDiscord(): Promise<void> {
+  await fetch("/api/auth/logout", { method: "POST" });
+}
+
 /* -------- Routes publiques -------- */
 
 export async function fetchLockedBooks(): Promise<Set<string>> {
   const data = await apiJson<{ lockedBookIds: string[] }>("/api/locked");
   return new Set(data?.lockedBookIds ?? []);
+}
+
+/** Vérifie si l'utilisateur connecté a un accès direct au livre (sans mot de passe). */
+export async function hasDirectAccess(bookId: string): Promise<boolean> {
+  const data = await apiJson<{ allowed: boolean }>(
+    `/api/access/${encodeURIComponent(bookId)}`,
+  );
+  return !!data?.allowed;
 }
 
 export async function verifyBookPassword(
@@ -75,7 +101,7 @@ export async function verifyBookPassword(
   return !!data?.ok;
 }
 
-/* -------- Admin -------- */
+/* -------- Admin : mot de passe maître -------- */
 
 export async function verifyAdminPassword(password: string): Promise<boolean> {
   const data = await apiJson<{ ok: boolean }>("/api/admin/verify", {
@@ -83,9 +109,6 @@ export async function verifyAdminPassword(password: string): Promise<boolean> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password }),
   });
-  // Si l'API répond, on se fie à sa réponse. Sinon fallback client
-  // (la constante est déjà publique dans le worker, donc aucune
-  // sécurité en moins).
   const ok = data ? !!data.ok : password === MASTER_PASSWORD;
   if (ok) setAdminPasswordSession(password);
   return ok;
@@ -95,6 +118,8 @@ function adminHeaders(): HeadersInit {
   const pw = getAdminPassword();
   return pw ? { "X-Admin-Password": pw } : {};
 }
+
+/* -------- Admin : mots de passe de livres -------- */
 
 export async function fetchAllPasswords(): Promise<Record<string, string>> {
   const data = await apiJson<Record<string, string>>("/api/admin/passwords", {
@@ -124,5 +149,49 @@ export async function deleteBookPassword(bookId: string): Promise<void> {
       method: "DELETE",
       headers: adminHeaders(),
     },
+  );
+}
+
+/* -------- Admin : accès utilisateurs -------- */
+
+export interface AdminUser {
+  discord_id: string;
+  username: string;
+  avatar: string | null;
+  last_seen: number;
+  books: string[];
+}
+
+export async function fetchUsers(): Promise<AdminUser[]> {
+  const data = await apiJson<AdminUser[]>("/api/admin/users", {
+    headers: adminHeaders(),
+  });
+  return data ?? [];
+}
+
+export async function grantAccess(
+  userId: string,
+  bookId: string,
+): Promise<void> {
+  await apiJson<{ ok: boolean }>(
+    `/api/admin/access/${encodeURIComponent(userId)}/${encodeURIComponent(bookId)}`,
+    { method: "PUT", headers: adminHeaders() },
+  );
+}
+
+export async function revokeAccess(
+  userId: string,
+  bookId: string,
+): Promise<void> {
+  await apiJson<{ ok: boolean }>(
+    `/api/admin/access/${encodeURIComponent(userId)}/${encodeURIComponent(bookId)}`,
+    { method: "DELETE", headers: adminHeaders() },
+  );
+}
+
+export async function deleteUser(userId: string): Promise<void> {
+  await apiJson<{ ok: boolean }>(
+    `/api/admin/users/${encodeURIComponent(userId)}`,
+    { method: "DELETE", headers: adminHeaders() },
   );
 }

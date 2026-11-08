@@ -1,23 +1,16 @@
 {
-  // Configuration du Worker Cloudflare + base D1.
-  // Doc : https://developers.cloudflare.com/workers/wrangler/configuration/
+  // Configuration Cloudflare Pages + D1.
+  // Doc : https://developers.cloudflare.com/pages/functions/wrangler-configuration/
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "bibliotheque",
-  "main": "worker/index.ts",
+  "name": "biblioth-que",
   "compatibility_date": "2025-06-01",
 
-  // Sert le build Vite en production ; le Worker s'exécute d'abord pour
-  // intercepter /api, le reste tombe sur les assets statiques.
-  "assets": {
-    "directory": "./dist",
-    "binding": "ASSETS",
-    "run_worker_first": true,
-    "not_found_handling": "single-page-application"
-  },
+  // Format Pages : sert les assets Vite depuis ./dist, les fonctions
+  // sont auto-découvertes dans functions/.
+  "pages_build_output_dir": "./dist",
 
-  // Base D1. Pour la PRODUCTION, créez-la puis collez l'id renvoyé :
-  //   wrangler d1 create bibliotheque-db
-  // En LOCAL (wrangler dev), l'id ci-dessous est ignoré (base locale auto).
+  // Base D1 — Pages lit ce binding automatiquement depuis wrangler.jsonc
+  // (dès lors que pages_build_output_dir est présent).
   "d1_databases": [
     {
       "binding": "DB",
@@ -26,5 +19,11 @@
     }
   ],
 
-  "observability": { "enabled": true }
+  // Variables d'environnement publiques (CLIENT_ID OAuth Discord est public).
+  // Le CLIENT_SECRET est stocké en secret séparé via :
+  //   npx wrangler pages secret put DISCORD_CLIENT_SECRET --project-name=biblioth-que
+  "vars": {
+    "DISCORD_CLIENT_ID": "1569011638957248562",
+    "APP_URL": "https://biblioth-que.pages.dev"
+  }
 }
